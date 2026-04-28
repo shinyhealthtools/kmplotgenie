@@ -27,21 +27,21 @@
   --surface2:   #f4f2ed;
   --border:     #ddd9d1;
   --border2:    #e9e5df;
-  --text:       #1c1c1c;
-  --text2:      #444;
-  --muted:      #6b6560;
-  --muted2:     #9a948e;
+  --text:       #111111;
+  --text2:      #2a2a2a;
+  --muted:      #4a4540;
+  --muted2:     #7a746e;
   --hbg:        #1a7a3c;
   --htxt:       #ffffff;
   --shadow:     0 2px 12px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);
   --nav-bg:     #1a7a3c;
   --inp-bg:     #faf9f7;
-  --code-bg:    #f0ede6;
-  --code-txt:   #2d2d2d;
+  --code-bg:    #1e2430;
+  --code-txt:   #e8ecf0;
   --acc:        #1a7a3c;
   --plt-bg:     #ffffff;
   --plt-grid:   rgba(0,0,0,0.055);
-  --plt-txt:    #2d2d2d;
+  --plt-txt:    #111111;
   --plt-axis:   rgba(0,0,0,0.14);
 }
 [data-theme="dark"] {
@@ -150,15 +150,17 @@ tbody td{padding:8px 13px;color:var(--text2)}
 .qs-num{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--acc);line-height:1.1;display:block}
 .qs-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-top:3px;display:block}
 .scode-wrap{padding:15px 17px}
-.scode{background:var(--code-bg);border:1px solid var(--border2);border-radius:7px;padding:13px 15px;font-family:var(--font-mono);font-size:11.5px;line-height:1.88;color:var(--code-txt);white-space:pre;overflow-x:auto;transition:background .3s,color .3s}
-.sc-h{color:var(--green-mid);font-weight:700}
-.sc-s{color:var(--muted2)}
-.sc-v{color:var(--acc);font-weight:600}
-.sc-l{color:var(--amber-lt)}
-.sc-sec{color:var(--green-light);font-weight:600}
+.scode{background:var(--code-bg);border:1px solid var(--border2);border-radius:7px;padding:14px 17px;font-family:var(--font-mono);font-size:13px;line-height:2;color:var(--code-txt);white-space:pre;overflow-x:auto;transition:background .3s,color .3s}
+.sc-h{color:#7ee89a;font-weight:700}
+.sc-s{color:#8b949e}
+.sc-v{color:#79c0ff;font-weight:600}
+.sc-l{color:#ffa657}
+.sc-sec{color:#a5d6a7;font-weight:600}
 .grp-tbl-wrap{padding:0 17px 15px}
 /* STAT BOX */
-.sbox{background:var(--code-bg);border:1px solid var(--border2);border-radius:7px;padding:13px 15px;font-family:var(--font-mono);font-size:11.5px;line-height:1.88;color:var(--muted);white-space:pre;overflow-x:auto;min-height:60px;transition:background .3s}
+.sbox{background:var(--code-bg);border:1px solid var(--border2);border-radius:7px;padding:13px 15px;font-family:var(--font-mono);font-size:13px;line-height:2;color:var(--code-txt);white-space:pre;overflow-x:auto;min-height:60px;transition:background .3s}
+/* COX */
+.cox-out{background:var(--code-bg);border:1px solid var(--border2);border-radius:7px;padding:14px 17px;font-family:var(--font-mono);font-size:13px;line-height:2;color:var(--code-txt);white-space:pre;overflow-x:auto;transition:background .3s,color .3s;min-height:80px}
 /* TOAST */
 #toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green-mid);color:var(--text);padding:11px 17px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 8px 26px rgba(0,0,0,.14);transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:9999;max-width:300px}
 #toast.show{transform:translateY(0);opacity:1}
@@ -187,6 +189,7 @@ tbody td{padding:8px 13px;color:var(--text2)}
     <button class="nav-tab active" onclick="switchTab('data')"     id="tab-data"><i class="fas fa-database"></i> Data Input</button>
     <button class="nav-tab"        onclick="switchTab('analysis')" id="tab-analysis"><i class="fas fa-chart-line"></i> Survival Analysis</button>
     <button class="nav-tab"        onclick="switchTab('table')"    id="tab-table"><i class="fas fa-table"></i> Survival Table</button>
+    <button class="nav-tab"        onclick="switchTab('cox')"      id="tab-cox"><i class="fas fa-calculator"></i> Cox Regression</button>
   </nav>
   <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">
     <i class="fas fa-moon" id="theme-icon"></i><span id="theme-lbl">Dark Mode</span>
@@ -270,6 +273,7 @@ tbody td{padding:8px 13px;color:var(--text2)}
           <label class="cr"><input type="checkbox" id="opt-median" checked><span>Median survival line</span></label>
           <label class="cr"><input type="checkbox" id="opt-censor" checked><span>Censor marks</span></label>
           <label class="cr"><input type="checkbox" id="opt-cumev"       ><span>Cumulative events</span></label>
+          <label class="cr"><input type="checkbox" id="opt-points"      ><span>Show data points</span></label>
           <div class="sep"></div>
           <div id="clr-sec" style="display:none;">
             <label style="margin-bottom:9px;">Group Colors</label>
@@ -287,7 +291,7 @@ tbody td{padding:8px 13px;color:var(--text2)}
         </div>
       </div>
     </div>
-    <!-- Plot -->
+    <!-- Plot area -->
     <div class="fcol">
       <div class="card">
         <div class="ch"><i class="fas fa-chart-area"></i> Kaplan–Meier Plot</div>
@@ -313,7 +317,7 @@ tbody td{padding:8px 13px;color:var(--text2)}
     </div>
   </div>
 
-  <!-- SUMMARY PANEL -->
+  <!-- SUMMARY PANEL — shown below the plot row -->
   <div class="sum-panel" id="sum-panel" style="display:none;">
     <div class="sum-head"><i class="fas fa-chart-pie"></i> Survival Analysis Summary</div>
     <!-- Quick stats -->
@@ -323,7 +327,7 @@ tbody td{padding:8px 13px;color:var(--text2)}
       <div class="qs-item"><span class="qs-num" id="qs-ce" style="color:var(--amber-lt)">—</span><span class="qs-lbl">Censored</span></div>
       <div class="qs-item"><span class="qs-num" id="qs-gr" style="color:var(--green-mid)">—</span><span class="qs-lbl">Groups</span></div>
     </div>
-    <!-- R-style code block -->
+    <!-- R-style summary block -->
     <div class="scode-wrap">
       <div class="scode" id="scode">—</div>
     </div>
@@ -335,7 +339,7 @@ tbody td{padding:8px 13px;color:var(--text2)}
   </div>
 </div>
 
-<!-- ══════ TAB 3: TABLE ══════ -->
+<!-- ══════ TAB 3: SURVIVAL TABLE ══════ -->
 <div class="tab-panel" id="panel-table">
   <div class="sec-title"><i class="fas fa-table"></i> Survival Table Generator</div>
   <div class="g2">
@@ -344,6 +348,7 @@ tbody td{padding:8px 13px;color:var(--text2)}
       <div class="cb">
         <div class="field"><label>Time Points (comma separated)</label><input type="text" id="tpts" placeholder="e.g. 30, 60, 90, 180, 365"></div>
         <p class="hint">Leave empty to use all observed event times</p>
+        <div class="field"><label>Table Title (for HTML export)</label><input type="text" id="tbl-title" value="Survival Analysis Table" placeholder="e.g. Table 1. Kaplan–Meier Survival Estimates"></div>
         <label class="cr"><input type="checkbox" id="tbl-ci"  checked><span>Show Confidence Intervals</span></label>
         <label class="cr"><input type="checkbox" id="tbl-med" checked><span>Show Median Survival</span></label>
         <div class="sep"></div>
@@ -368,6 +373,65 @@ tbody td{padding:8px 13px;color:var(--text2)}
   </div>
 </div>
 
+<!-- ══════ TAB 4: COX REGRESSION ══════ -->
+<div class="tab-panel" id="panel-cox">
+  <div class="sec-title"><i class="fas fa-calculator"></i> Cox Proportional Hazards Regression</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ch"><i class="fas fa-gear"></i> Cox Model Parameters</div>
+      <div class="cb">
+        <p style="color:var(--muted);font-size:13px;margin-bottom:14px;">
+          Cox regression uses your loaded <strong>Time</strong> and <strong>Event</strong> columns. 
+          The <strong>Group</strong> variable (if loaded) will be used as the covariate. 
+          You can also add extra numeric covariates below.
+        </p>
+        <div class="field">
+          <label>Additional Numeric Covariates (optional)</label>
+          <p class="hint" style="margin-top:0;margin-bottom:6px;">Paste one covariate per box — same row order as your time/event data.</p>
+          <div id="cox-cov-wrap">
+            <div class="col-box" style="margin-bottom:8px;" id="cox-cov-0">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                <input type="text" placeholder="Covariate name (e.g. Age)" id="cox-cov-name-0" style="width:160px;font-size:12px;padding:5px 8px">
+                <button class="btn btn-g btn-sm" onclick="addCoxCov()" title="Add another covariate"><i class="fas fa-plus"></i></button>
+                <button class="btn btn-g btn-sm" onclick="rmCoxCov(0)" title="Remove"><i class="fas fa-times"></i></button>
+              </div>
+              <textarea id="cox-cov-data-0" placeholder="Numeric values, one per line" style="height:80px;" spellcheck="false"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <label class="cr"><input type="checkbox" id="cox-group" checked><span>Include Group variable as covariate</span></label>
+        <div class="sep"></div>
+        <button class="btn btn-p btn-bl" onclick="runCox()"><i class="fas fa-play"></i> Run Cox Regression</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><i class="fas fa-info-circle"></i> How to Interpret</div>
+      <div class="cb" style="font-size:13px;color:var(--text2);line-height:1.8;">
+        <p><strong>Hazard Ratio (HR)</strong>: HR &gt; 1 = increased hazard; HR &lt; 1 = decreased hazard relative to reference.</p>
+        <p style="margin-top:8px;"><strong>95% CI</strong>: If the CI excludes 1, the effect is statistically significant.</p>
+        <p style="margin-top:8px;"><strong>p-value</strong>: Tests whether the covariate has a significant effect on survival.</p>
+        <p style="margin-top:8px;"><strong>concordance (C-index)</strong>: Discrimination ability of the model; 0.5 = random, 1.0 = perfect.</p>
+        <p style="margin-top:8px;"><em>Note: This implementation uses a Newton-Raphson partial likelihood approach. For large datasets or many covariates, results may differ slightly from R's coxph due to tie-handling differences (Efron vs Breslow).</em></p>
+      </div>
+    </div>
+  </div>
+  <div class="card mt15" id="cox-out-card" style="display:none;">
+    <div class="ch"><i class="fas fa-table"></i> Cox Regression Results</div>
+    <div class="cb">
+      <div class="cox-out" id="cox-out">—</div>
+      <div style="margin-top:14px;">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;"><i class="fas fa-table"></i> Coefficient Table</div>
+        <div class="tw"><table id="cox-tbl"><thead></thead><tbody></tbody></table></div>
+      </div>
+      <div class="bgrp">
+        <button class="btn btn-g btn-sm" onclick="dlCoxCSV()"><i class="fas fa-file-csv"></i> Download CSV</button>
+        <button class="btn btn-g btn-sm" onclick="dlCoxTxt()"><i class="fas fa-download"></i> Download .txt</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /app -->
 
 <div id="toast"></div>
@@ -375,14 +439,15 @@ tbody td{padding:8px 13px;color:var(--text2)}
   Built with ❤️ in Ghana by <strong>Mudasir Mohammed Ibrahim</strong>
   <a href="mailto:mudassiribrahim30@gmail.com"><i class="fas fa-envelope"></i> Email</a>
   <a href="https://www.researchgate.net/profile/Mudasir-Ibrahim" target="_blank"><i class="fas fa-graduation-cap"></i> ResearchGate</a>
-  <a href="https://github.com/mudassiribrahim30" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+  <a href="https://github.com/shinyhealthtools" target="_blank"><i class="fab fa-github"></i> GitHub</a>
 </div>
 
 <script>
 // ── STATE ─────────────────────────────────────
 let D={time:[],event:[],group:[],hasG:false,groups:[]};
-let FIT=null,CHART=null,TBLDATA=[];
+let FIT=null,CHART=null,TBLDATA=[],COXDATA=[];
 const GCOL=['#1a7a3c','#c0392b','#1d6fa4','#b45309','#6c3483','#117a65','#784212','#1a5276'];
+let coxCovCount=1;
 
 // ── THEME ─────────────────────────────────────
 function toggleTheme(){
@@ -437,7 +502,7 @@ function clearAll(){
   ['bdg-time','bdg-event','bdg-group'].forEach(id=>document.getElementById(id).style.display='none');
   document.getElementById('prev-sec').style.display='none';
   document.getElementById('dstat').textContent='';
-  D={time:[],event:[],group:[],hasG:false,groups:[]};FIT=null;TBLDATA=[];
+  D={time:[],event:[],group:[],hasG:false,groups:[]};FIT=null;TBLDATA=[];COXDATA=[];
   document.getElementById('sum-panel').style.display='none';
   toast('Data cleared');
 }
@@ -481,22 +546,51 @@ function km(times,events){
     let d=0,c=0;
     while(idx<s.length&&s[idx].t===t){s[idx].e===1?d++:c++;idx++;}
     if(atR>0&&d>0){
-      S*=(atR-d)/atR;V+=d/(atR*(atR-d));
+      S*=(atR-d)/atR;
+      // Greenwood's formula variance
+      V+=d/(atR*(atR-d));
       const se=Math.sqrt(S*S*V),z=1.96;
-      steps.push({t,surv:S,lower:Math.max(0,S-z*se),upper:Math.min(1,S+z*se),nRisk:atR,nEvent:d,nCensor:c});
+      // Standard CI: S ± 1.96·SE (lower must be < upper)
+      const lower=Math.max(0,S-z*se);
+      const upper=Math.min(1,S+z*se);
+      steps.push({t,surv:S,lower,upper,nRisk:atR,nEvent:d,nCensor:c});
       atR-=(d+c);
     }
   }
-  return{steps,censors:s.filter(r=>r.e===0).map(r=>r.t),n};
+  // collect censor times not already processed
+  const censors=s.filter(r=>r.e===0).map(r=>r.t);
+  return{steps,censors,n};
 }
-function survAt(steps,t){let s=1;for(const st of steps){if(st.t<=t)s=st.surv;else break;}return s;}
+
+function survAt(steps,t){
+  let s=1;
+  for(const st of steps){if(st.t<=t)s=st.surv;else break;}
+  return s;
+}
+
+function ciAt(steps,t){
+  let lower=1,upper=1;
+  for(const st of steps){if(st.t<=t){lower=st.lower;upper=st.upper;}else break;}
+  return{lower,upper};
+}
+
 function medSurv(steps){for(const s of steps)if(s.surv<=0.5)return s.t;return null;}
+
 function medCI(steps){
+  // R survfit convention:
+  //   LCL (0.95LCL) = first time the UPPER CI band drops to ≤ 0.5  → smaller time → lower bound
+  //   UCL (0.95UCL) = first time the LOWER CI band drops to ≤ 0.5  → larger time  → upper bound
+  // This guarantees LCL ≤ median ≤ UCL always.
   let lo=null,hi=null;
-  for(const s of steps)if(s.upper<=0.5&&lo===null)lo=s.t;
-  for(const s of steps)if(s.lower<=0.5&&hi===null)hi=s.t;
+  for(const s of steps){
+    if(s.upper<=0.5&&lo===null)lo=s.t;   // upper band hits 0.5 first → LCL
+    if(s.lower<=0.5&&hi===null)hi=s.t;   // lower band hits 0.5 later → UCL
+  }
+  // Enforce lo ≤ hi (safeguard)
+  if(lo!==null&&hi!==null&&lo>hi){const tmp=lo;lo=hi;hi=tmp;}
   return{lo,hi};
 }
+
 function logrank(gfs){
   const allT=[...new Set(gfs.flatMap(g=>g.times.filter((_,i)=>g.events[i]===1)))].sort((a,b)=>a-b);
   let O=gfs.map(()=>0),E=gfs.map(()=>0);
@@ -551,6 +645,7 @@ function drawChart(gfs,lr){
   const showCen=document.getElementById('opt-censor').checked;
   const showCE=document.getElementById('opt-cumev').checked;
   const showPv=document.getElementById('opt-pval').checked;
+  const showPts=document.getElementById('opt-points').checked;
   const title=document.getElementById('ptitle').value;
   const xl=document.getElementById('xlab').value;
   const yl=showCE?'Cumulative Events':document.getElementById('ylab').value;
@@ -569,7 +664,15 @@ function drawChart(gfs,lr){
     const ld=[{x:0,y:showCE?0:1}];
     for(let i=1;i<steps.length;i++){ld.push({x:steps[i].t,y:toY(steps[i-1].surv)});ld.push({x:steps[i].t,y:toY(steps[i].surv)});}
     if(steps.length)ld.push({x:maxT,y:toY(steps[steps.length-1].surv)});
-    sets.push({label:gf.g,data:ld,borderColor:c,backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,tension:0,order:1,type:'line'});
+    sets.push({
+      label:gf.g,data:ld,borderColor:c,backgroundColor:'transparent',
+      borderWidth:2.5,
+      pointRadius:showPts?4:0,
+      pointBackgroundColor:c,
+      pointBorderColor:'#fff',
+      pointBorderWidth:showPts?1.5:0,
+      tension:0,order:1,type:'line'
+    });
     if(showCI&&steps.length>1){
       const up=[{x:0,y:toY(1)}],lo=[{x:0,y:toY(1)}];
       for(let i=1;i<steps.length;i++){
@@ -625,15 +728,15 @@ function renderRisk(gfs){
 
 // ── LOG-RANK ──────────────────────────────────
 function renderLR(r){
-  const pc=r.pval<.05?'#1a7a3c':'#6b6560';
+  const pc=r.pval<.05?'#4caf6e':'#8b949e';
   document.getElementById('lr-out').innerHTML=
-    `<span style="color:var(--green-mid);font-weight:700">Log-Rank Test Results\n</span>`+
+    `<span style="color:#7ee89a;font-weight:700">Log-Rank Test Results\n</span>`+
     `──────────────────────────────\n`+
-    `Chi-squared:        <span style="color:var(--amber-lt)">${r.chi2.toFixed(4)}</span>\n`+
-    `Degrees of freedom: ${r.df}\n`+
+    `Chi-squared:        <span style="color:#ffa657">${r.chi2.toFixed(4)}</span>\n`+
+    `Degrees of freedom: <span style="color:#e8ecf0">${r.df}</span>\n`+
     `p-value:            <span style="color:${pc};font-weight:700">${fmtP(r.pval)}</span>\n\n`+
-    `Group Summary:\n`+
-    D.groups.map((g,i)=>`  ${g.padEnd(16)} O=${r.O[i]}  E=${r.E[i].toFixed(2)}`).join('\n');
+    `<span style="color:#a5d6a7">Group Summary:</span>\n`+
+    D.groups.map((g,i)=>`  <span style="color:#e8ecf0">${g.padEnd(16)}</span> O=<span style="color:#79c0ff">${r.O[i]}</span>  E=<span style="color:#79c0ff">${r.E[i].toFixed(2)}</span>`).join('\n');
 }
 
 // ── SUMMARY PANEL ─────────────────────────────
@@ -646,40 +749,55 @@ function renderSummary(gfs,lr){
   document.getElementById('qs-ce').textContent=ce;
   document.getElementById('qs-gr').textContent=ng;
 
-  // Median rows
+  // R-style survfit header
+  const hdr='  '+('strata').padEnd(18)+('n').padStart(6)+('events').padStart(8)+('median').padStart(9)+('0.95LCL').padStart(10)+('0.95UCL').padStart(10);
+
   const medRows=gfs.map(gf=>{
+    const nG=gf.times.length;
+    const eG=gf.events.filter(e=>e===1).length;
     const m=medSurv(gf.fit.steps),ci=medCI(gf.fit.steps);
-    const mS=m!==null?m.toFixed(1):'Not reached';
+    // ci.lo = 0.95LCL (smaller), ci.hi = 0.95UCL (larger)
+    const mS=m!==null?m.toFixed(1):'Inf';
     const lS=ci.lo!==null?ci.lo.toFixed(1):'NA';
     const uS=ci.hi!==null?ci.hi.toFixed(1):'NA';
-    return`  ${gf.g.padEnd(16)} ${mS.padStart(10)}  ${lS.padStart(8)}  ${uS.padStart(8)}`;
+    return`  ${gf.g.padEnd(18)}${String(nG).padStart(6)}${String(eG).padStart(8)}${mS.padStart(9)}${lS.padStart(10)}${uS.padStart(10)}`;
   });
 
-  const pLine=lr?`\nLog-Rank Test: χ²(${lr.df}) = ${lr.chi2.toFixed(4)}, p-value = ${fmtP(lr.pval)}`:'';
-  const formulaStr=D.hasG?`Surv(time, event) ~ group`:`Surv(time, event) ~ 1`;
+  const pLine=lr?`\n<span class="sc-sec">Log-Rank Test:</span> <span class="sc-v">χ²(${lr.df}) = ${lr.chi2.toFixed(4)}, p-value = ${fmtP(lr.pval)}</span>`:'';
 
   document.getElementById('scode').innerHTML=
 `<span class="sc-h">Kaplan-Meier Survival Analysis Summary</span>
 <span class="sc-s">======================================</span>
 
-<span class="sc-l">Call:</span> survfit(formula = ${formulaStr}, data = surv_data)
+<span class="sc-sec">Overall:</span>
+  Total observations: <span class="sc-v">${n}</span>   Events: <span class="sc-v">${ev}</span>   Censored: <span class="sc-v">${ce}</span>   Censoring rate: <span class="sc-v">${((ce/n)*100).toFixed(1)}%</span>
 
-<span class="sc-sec">Median Survival Time:</span>
-  <span class="sc-l">${'strata'.padEnd(16)} ${'median'.padStart(10)}  ${'0.95LCL'.padStart(8)}  ${'0.95UCL'.padStart(8)}</span>
-${medRows.join('\n')}
+<span class="sc-sec">Kaplan-Meier Survival Summary (R-style):</span>
+<span class="sc-l">${hdr}</span>
+${medRows.map(r=>`<span style="color:#e8ecf0">${r}</span>`).join('\n')}
+
+<span class="sc-sec">Median Survival Time with 95% CI:</span>
+  <span class="sc-l">${'strata'.padEnd(18)}${'median'.padStart(9)}${'0.95LCL'.padStart(10)}${'0.95UCL'.padStart(10)}</span>
+${gfs.map(gf=>{
+    const m=medSurv(gf.fit.steps),ci=medCI(gf.fit.steps);
+    const mS=m!==null?m.toFixed(1):'Inf';
+    const lS=ci.lo!==null?ci.lo.toFixed(1):'NA';
+    const uS=ci.hi!==null?ci.hi.toFixed(1):'NA';
+    return`  <span style="color:#e8ecf0">${gf.g.padEnd(18)}${mS.padStart(9)}${lS.padStart(10)}${uS.padStart(10)}</span>`;
+  }).join('\n')}
 
 <span class="sc-sec">Summary Statistics:</span>
   Number of observations: <span class="sc-v">${n}</span>
   Number of events:       <span class="sc-v">${ev}</span>
-  Censored:               <span class="sc-v">${ce}</span>
-  Censoring rate:         <span class="sc-v">${((ce/n)*100).toFixed(1)}%</span>${pLine}`;
+  Censored:               <span class="sc-v">${ce}</span>${pLine}`;
 
-  // Group detail table
+  // Group detail table: Group | N | Events | Censored | Median | 0.95LCL | 0.95UCL
   const gt=document.getElementById('grp-tbl');
-  gt.querySelector('thead').innerHTML='<tr><th>Group</th><th>N</th><th>Events</th><th>Censored</th><th>Median Survival</th><th>95% CI Lower</th><th>95% CI Upper</th></tr>';
+  gt.querySelector('thead').innerHTML='<tr><th>Group</th><th>N</th><th>Events</th><th>Censored</th><th>Median Survival</th><th>Median 0.95LCL</th><th>Median 0.95UCL</th></tr>';
   gt.querySelector('tbody').innerHTML=gfs.map(gf=>{
     const nG=gf.times.length,eG=gf.events.filter(e=>e===1).length;
     const m=medSurv(gf.fit.steps),ci=medCI(gf.fit.steps);
+    // ci.lo = LCL (smaller), ci.hi = UCL (larger)
     return`<tr>
       <td style="color:${gf.color};font-weight:600">${gf.g}</td>
       <td>${nG}</td><td>${eG}</td><td>${nG-eG}</td>
@@ -701,12 +819,27 @@ function genTable(){
   TBLDATA=[];
   for(const gf of FIT){
     const{steps}=gf.fit;
+    // cumulative events and censored up to time t
     for(const t of pts){
-      let sv={surv:1,lower:1,upper:1};for(const s of steps){if(s.t<=t)sv=s;else break;}
-      const row={Group:gf.g,Time:t,'Survival Prob':sv.surv.toFixed(4),
-        Events:steps.filter(s=>s.t<=t).reduce((a,s)=>a+s.nEvent,0),
-        'At Risk':gf.times.filter(ti=>ti>=t).length};
-      if(showCI){row['Lower 95% CI']=sv.lower.toFixed(4);row['Upper 95% CI']=sv.upper.toFixed(4);}
+      let sv={surv:1,lower:1,upper:1};
+      for(const s of steps){if(s.t<=t)sv=s;else break;}
+      // cumulative events = sum of nEvent for all steps with t <= t
+      const cumEvents=steps.filter(s=>s.t<=t).reduce((a,s)=>a+s.nEvent,0);
+      const cumCensored=steps.filter(s=>s.t<=t).reduce((a,s)=>a+s.nCensor,0);
+      const atRisk=gf.times.filter(ti=>ti>=t).length;
+      const survProb=sv.surv.toFixed(4);
+      // lower CI < upper CI (corrected)
+      const lci=sv.lower.toFixed(4);
+      const uci=sv.upper.toFixed(4);
+      const row={
+        'Group':gf.g,
+        'Time':t,
+        'N at Risk':atRisk,
+        'Cumulative Events':cumEvents,
+        'Cumulative Censored':cumCensored,
+        'Survival Prob':survProb
+      };
+      if(showCI){row['Lower 95% CI']=lci;row['Upper 95% CI']=uci;}
       TBLDATA.push(row);
     }
   }
@@ -717,10 +850,237 @@ function genTable(){
   if(document.getElementById('tbl-med').checked){
     document.getElementById('med-sum').textContent=FIT.map(gf=>{
       const m=medSurv(gf.fit.steps),ci=medCI(gf.fit.steps);
-      return`${gf.g}: Median = ${m!==null?m.toFixed(1):'Not reached'} [${ci.lo!==null?ci.lo.toFixed(1):'NA'} – ${ci.hi!==null?ci.hi.toFixed(1):'NA'}]`;
+      // ci.lo = 0.95LCL, ci.hi = 0.95UCL
+      return`${gf.g}: Median = ${m!==null?m.toFixed(1):'Not reached'}  [0.95LCL: ${ci.lo!==null?ci.lo.toFixed(1):'NA'}  0.95UCL: ${ci.hi!==null?ci.hi.toFixed(1):'NA'}]`;
     }).join('\n');
   }
   toast('Survival table generated');
+}
+
+// ── COX REGRESSION ────────────────────────────
+// Newton-Raphson partial likelihood (Breslow tie-handling)
+let coxCovIds=[];
+
+function addCoxCov(){
+  const id=coxCovCount++;
+  coxCovIds.push(id);
+  const wrap=document.getElementById('cox-cov-wrap');
+  const div=document.createElement('div');
+  div.className='col-box';div.style.marginBottom='8px';div.id='cox-cov-'+id;
+  div.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+    <input type="text" placeholder="Covariate name" id="cox-cov-name-${id}" style="width:160px;font-size:12px;padding:5px 8px">
+    <button class="btn btn-g btn-sm" onclick="rmCoxCov(${id})" title="Remove"><i class="fas fa-times"></i></button>
+  </div>
+  <textarea id="cox-cov-data-${id}" placeholder="Numeric values, one per line" style="height:80px;" spellcheck="false"></textarea>`;
+  wrap.appendChild(div);
+}
+function rmCoxCov(id){
+  const el=document.getElementById('cox-cov-'+id);
+  if(el)el.remove();
+}
+
+function runCox(){
+  if(!D.time.length){toast('Load data first.','err');return;}
+  // Gather covariates
+  const covNames=[];const covData=[];
+  // Group covariate
+  if(document.getElementById('cox-group').checked&&D.hasG){
+    const uGroups=[...new Set(D.group)].sort();
+    if(uGroups.length>=2){
+      // Encode as numeric: reference = first group alphabetically
+      const ref=uGroups[0];
+      for(let k=1;k<uGroups.length;k++){
+        covNames.push(uGroups[k]+' vs '+ref);
+        covData.push(D.group.map(g=>g===uGroups[k]?1:0));
+      }
+    }
+  }
+  // Additional numeric covariates
+  const allInputs=document.querySelectorAll('[id^="cox-cov-data-"]');
+  const allNames=document.querySelectorAll('[id^="cox-cov-name-"]');
+  for(let i=0;i<allInputs.length;i++){
+    const raw=allInputs[i].value.trim();
+    if(!raw)continue;
+    const vals=pCol(raw).map(Number);
+    if(vals.some(isNaN)){toast('Covariate values must be numeric.','err');return;}
+    if(vals.length!==D.time.length){toast(`Covariate row count (${vals.length}) doesn't match data (${D.time.length}).`,'err');return;}
+    const nm=allNames[i].value.trim()||`Covariate ${i+1}`;
+    covNames.push(nm);covData.push(vals);
+  }
+  if(covNames.length===0){toast('No covariates available. Load group data or add a covariate.','err');return;}
+
+  // Newton-Raphson partial likelihood
+  const n=D.time.length,p=covNames.length;
+  const times=D.time,events=D.event;
+  // Sort by time
+  const ord=times.map((_,i)=>i).sort((a,b)=>times[a]-times[b]);
+  const sT=ord.map(i=>times[i]),sE=ord.map(i=>events[i]);
+  const sX=ord.map(i=>covData.map(cd=>cd[i]));
+
+  let beta=new Array(p).fill(0);
+  const maxIter=50,tol=1e-8;
+  for(let iter=0;iter<maxIter;iter++){
+    const score=new Array(p).fill(0);
+    const info=Array.from({length:p},()=>new Array(p).fill(0));
+    let maxChg=0;
+    // Compute gradient and Hessian
+    for(let i=0;i<n;i++){
+      if(sE[i]!==1)continue;
+      // Risk set: all j with sT[j] >= sT[i]
+      let s0=0,s1=new Array(p).fill(0),s2=Array.from({length:p},()=>new Array(p).fill(0));
+      for(let j=0;j<n;j++){
+        if(sT[j]<sT[i])continue;
+        const xb=sX[j].reduce((a,v,k)=>a+v*beta[k],0);
+        const e=Math.exp(xb);
+        s0+=e;
+        for(let k=0;k<p;k++){s1[k]+=sX[j][k]*e;for(let l=0;l<p;l++)s2[k][l]+=sX[j][k]*sX[j][l]*e;}
+      }
+      for(let k=0;k<p;k++){score[k]+=sX[i][k]-s1[k]/s0;for(let l=0;l<p;l++)info[k][l]+=s2[k][l]/s0-s1[k]*s1[l]/(s0*s0);}
+    }
+    // Newton step: beta += info^{-1} * score
+    const delta=solveLS(info,score,p);
+    for(let k=0;k<p;k++){beta[k]+=delta[k];maxChg=Math.max(maxChg,Math.abs(delta[k]));}
+    if(maxChg<tol)break;
+  }
+  // Variance = diag of info^{-1}
+  const score2=new Array(p).fill(0);
+  const info2=Array.from({length:p},()=>new Array(p).fill(0));
+  for(let i=0;i<n;i++){
+    if(sE[i]!==1)continue;
+    let s0=0,s1=new Array(p).fill(0),s2=Array.from({length:p},()=>new Array(p).fill(0));
+    for(let j=0;j<n;j++){
+      if(sT[j]<sT[i])continue;
+      const xb=sX[j].reduce((a,v,k)=>a+v*beta[k],0);
+      const e=Math.exp(xb);
+      s0+=e;for(let k=0;k<p;k++){s1[k]+=sX[j][k]*e;for(let l=0;l<p;l++)s2[k][l]+=sX[j][k]*sX[j][l]*e;}
+    }
+    for(let k=0;k<p;k++){for(let l=0;l<p;l++)info2[k][l]+=s2[k][l]/s0-s1[k]*s1[l]/(s0*s0);}
+  }
+  const varBeta=invertDiag(info2,p);
+  // Concordance (C-index)
+  let conc=0,disc=0,ties=0;
+  for(let i=0;i<n;i++){
+    if(sE[i]!==1)continue;
+    const ri=sX[i].reduce((a,v,k)=>a+v*beta[k],0);
+    for(let j=0;j<n;j++){
+      if(i===j||sT[j]<sT[i])continue;
+      const rj=sX[j].reduce((a,v,k)=>a+v*beta[k],0);
+      if(ri>rj)conc++;else if(ri<rj)disc++;else ties++;
+    }
+  }
+  const total=conc+disc+ties;
+  const cIndex=total>0?(conc+0.5*ties)/total:0.5;
+  // log partial likelihood
+  let logPL=0;
+  for(let i=0;i<n;i++){
+    if(sE[i]!==1)continue;
+    const xi=sX[i].reduce((a,v,k)=>a+v*beta[k],0);
+    let s0=0;for(let j=0;j<n;j++){if(sT[j]>=sT[i])s0+=Math.exp(sX[j].reduce((a,v,k)=>a+v*beta[k],0));}
+    logPL+=xi-Math.log(s0);
+  }
+  // Build results
+  COXDATA=covNames.map((nm,k)=>{
+    const b=beta[k],se=Math.sqrt(Math.abs(varBeta[k]));
+    const hr=Math.exp(b),z=b/se;
+    const pv=2*(1-normCDF(Math.abs(z)));
+    const lo=Math.exp(b-1.96*se),hi=Math.exp(b+1.96*se);
+    return{covariate:nm,coef:b.toFixed(4),'exp(coef)':hr.toFixed(4),se:se.toFixed(4),z:z.toFixed(3),p:fmtP(pv),'HR 95% CI Lower':lo.toFixed(4),'HR 95% CI Upper':hi.toFixed(4)};
+  });
+  renderCox(COXDATA,cIndex,logPL,p,events.filter(e=>e===1).length);
+  document.getElementById('cox-out-card').style.display='block';
+  switchTab('cox');
+  toast('Cox regression complete');
+}
+
+function renderCox(data,cIndex,logPL,p,nEv){
+  const evnt=D.event.filter(e=>e===1).length;
+  // Text summary block
+  document.getElementById('cox-out').innerHTML=
+    `<span style="color:#7ee89a;font-weight:700">Cox Proportional Hazards Model\n</span>`+
+    `──────────────────────────────────────────\n`+
+    `n = ${D.time.length},   events = ${evnt}\n\n`+
+    `Log partial likelihood:  ${logPL.toFixed(4)}\n`+
+    `Concordance (C-index):   ${cIndex.toFixed(4)}\n\n`+
+    `<span style="color:#a5d6a7;font-weight:600">Coefficients:</span>\n`+
+    `  ${'Term'.padEnd(26)} ${'Estimate'.padStart(10)} ${'Std.Error'.padStart(10)} ${'HR'.padStart(10)} ${'z'.padStart(7)} ${'p-value'.padStart(10)}\n`+
+    data.map(r=>`  ${r.covariate.padEnd(26)} ${r.coef.padStart(10)} ${r.se.padStart(10)} ${r['exp(coef)'].padStart(10)} ${r.z.padStart(7)} ${r.p.padStart(10)}`).join('\n')+
+    `\n\n<span style="color:#a5d6a7;font-weight:600">95% Confidence Interval for HR (Wald):</span>\n`+
+    `  ${'Term'.padEnd(26)} ${'HR'.padStart(10)} ${'Lower 95%'.padStart(12)} ${'Upper 95%'.padStart(12)}\n`+
+    data.map(r=>`  ${r.covariate.padEnd(26)} ${r['exp(coef)'].padStart(10)} ${r['HR 95% CI Lower'].padStart(12)} ${r['HR 95% CI Upper'].padStart(12)}`).join('\n');
+
+  // Table: Term | Estimate (coef) | Std Error | HR | Lower 95% CI | Upper 95% CI | z | p-value
+  const tbl=document.getElementById('cox-tbl');
+  tbl.querySelector('thead').innerHTML=`<tr>
+    <th>Term</th>
+    <th>Estimate (coef)</th>
+    <th>Std Error</th>
+    <th>Hazard Ratio (HR)</th>
+    <th>HR Lower 95% CI</th>
+    <th>HR Upper 95% CI</th>
+    <th>z</th>
+    <th>p-value</th>
+  </tr>`;
+  tbl.querySelector('tbody').innerHTML=data.map(r=>{
+    const pNum=parseFloat(r.p.replace('<','').trim());
+    const sig=r.p==='< 0.001'||pNum<0.05;
+    const pStyle=sig?'color:#2ea043;font-weight:700':'';
+    return`<tr>
+      <td style="font-weight:600">${r.covariate}</td>
+      <td>${r.coef}</td>
+      <td>${r.se}</td>
+      <td style="font-weight:600">${r['exp(coef)']}</td>
+      <td>${r['HR 95% CI Lower']}</td>
+      <td>${r['HR 95% CI Upper']}</td>
+      <td>${r.z}</td>
+      <td style="${pStyle}">${r.p}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── LINEAR ALGEBRA HELPERS ────────────────────
+function solveLS(A,b,n){
+  // Gaussian elimination with partial pivoting
+  const M=A.map((r,i)=>[...r,b[i]]);
+  for(let col=0;col<n;col++){
+    let maxR=col;for(let r=col+1;r<n;r++)if(Math.abs(M[r][col])>Math.abs(M[maxR][col]))maxR=r;
+    [M[col],M[maxR]]=[M[maxR],M[col]];
+    if(Math.abs(M[col][col])<1e-14)continue;
+    for(let r=0;r<n;r++){if(r===col)continue;const f=M[r][col]/M[col][col];for(let c=col;c<=n;c++)M[r][c]-=f*M[col][c];}
+  }
+  return M.map((r,i)=>M[i][i]!==0?r[n]/r[i]:0);
+}
+function invertDiag(A,n){
+  // Return diagonal of A^{-1} via Gaussian elimination on augmented [A|I]
+  const M=A.map((r,i)=>{const e=new Array(n).fill(0);e[i]=1;return[...r,...e];});
+  for(let col=0;col<n;col++){
+    let maxR=col;for(let r=col+1;r<n;r++)if(Math.abs(M[r][col])>Math.abs(M[maxR][col]))maxR=r;
+    [M[col],M[maxR]]=[M[maxR],M[col]];
+    const piv=M[col][col];if(Math.abs(piv)<1e-14)continue;
+    for(let c=0;c<2*n;c++)M[col][c]/=piv;
+    for(let r=0;r<n;r++){if(r===col)continue;const f=M[r][col];for(let c=0;c<2*n;c++)M[r][c]-=f*M[col][c];}
+  }
+  return M.map((r,i)=>r[n+i]);
+}
+function normCDF(z){
+  const t=1/(1+0.2316419*Math.abs(z));
+  const poly=t*(0.319381530+t*(-0.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429))));
+  const p=1-0.3989422804*Math.exp(-0.5*z*z)*poly;
+  return z>=0?p:1-p;
+}
+
+// ── COX DOWNLOADS ─────────────────────────────
+function dlCoxCSV(){
+  if(!COXDATA.length){toast('Run Cox regression first.','err');return;}
+  const cols=Object.keys(COXDATA[0]);
+  const rows=[cols.join(','),...COXDATA.map(r=>cols.map(k=>r[k]).join(','))];
+  const b=new Blob([rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`cox_results_${Date.now()}.csv`;a.click();toast('CSV downloaded');
+}
+function dlCoxTxt(){
+  if(!COXDATA.length){toast('Run Cox regression first.','err');return;}
+  const t=document.getElementById('cox-out').innerText;
+  const b=new Blob([t],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`cox_results_${Date.now()}.txt`;a.click();toast('Downloaded');
 }
 
 // ── DOWNLOADS ─────────────────────────────────
@@ -747,12 +1107,34 @@ function dlCSV(){
 }
 function dlHTML(){
   if(!TBLDATA.length){toast('Generate table first.','err');return;}
+  const userTitle=document.getElementById('tbl-title')?.value.trim()||'Survival Analysis Table';
   const c=Object.keys(TBLDATA[0]);
-  const th='<tr>'+c.map(k=>`<th style="background:#1a7a3c;color:#fff;padding:8px 12px">${k}</th>`).join('')+'</tr>';
-  const tb=TBLDATA.map(r=>'<tr>'+c.map(k=>`<td style="padding:6px 12px;border-bottom:1px solid #ddd">${r[k]}</td>`).join('')+'</tr>').join('');
-  const h=`<html><head><meta charset="UTF-8"></head><body><h2 style="font-family:sans-serif;color:#1a7a3c">Survival Table — KMPlotGenie</h2><table style="border-collapse:collapse;font-family:sans-serif;font-size:13px">${th}${tb}</table></body></html>`;
+  const th='<tr>'+c.map(k=>`<th style="background:#1a7a3c;color:#fff;padding:9px 14px;font-family:Arial,sans-serif;font-size:13px;font-weight:600;text-align:left;border:1px solid #155e30">${k}</th>`).join('')+'</tr>';
+  const tb=TBLDATA.map((r,ri)=>{
+    const bg=ri%2===0?'#ffffff':'#f0f7f3';
+    return'<tr>'+c.map(k=>`<td style="padding:7px 14px;border:1px solid #c8ddd2;font-family:Arial,sans-serif;font-size:13px;background:${bg}">${r[k]}</td>`).join('')+'</tr>';
+  }).join('');
+  const h=`<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<title>${userTitle}</title>
+<style>
+  body{font-family:Arial,sans-serif;margin:32px 40px;color:#111}
+  h2{font-size:15px;font-weight:700;color:#1a7a3c;margin-bottom:4px;margin-top:0}
+  p.sub{font-size:11px;color:#555;margin-bottom:16px;margin-top:0}
+  table{border-collapse:collapse;width:100%}
+  caption{text-align:left;font-size:12px;color:#555;margin-bottom:8px;font-style:italic}
+</style>
+</head><body>
+<h2>${userTitle}</h2>
+<p class="sub">Generated by KMPlotGenie — Kaplan–Meier Survival Analysis</p>
+<table>
+  <thead>${th}</thead>
+  <tbody>${tb}</tbody>
+</table>
+<p class="sub" style="margin-top:18px">95% CI: Greenwood's formula. Survival probability estimated by the Kaplan–Meier method.</p>
+</body></html>`;
   const b=new Blob([h],{type:'text/html'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`surv_table_${Date.now()}.html`;a.click();toast('HTML downloaded');
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`surv_table_${Date.now()}.html`;a.click();toast('HTML downloaded with your title');
 }
 function cpTSV(){
   if(!TBLDATA.length){toast('Generate table first.','err');return;}
@@ -763,7 +1145,7 @@ function cpTSV(){
 
 // ── LIVE REDRAW ───────────────────────────────
 ['ptitle','xlab','ylab','legtitle','fsize','ptheme',
- 'opt-ci','opt-pval','opt-risk','opt-median','opt-censor','opt-cumev'
+ 'opt-ci','opt-pval','opt-risk','opt-median','opt-censor','opt-cumev','opt-points'
 ].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('change',()=>{if(FIT)genPlot();});});
 document.addEventListener('change',e=>{if(e.target.id&&e.target.id.startsWith('cp-')&&FIT)genPlot();});
 
