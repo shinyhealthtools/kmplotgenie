@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KMPlotGenie v1.0 – Easy-to-do Survival Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --font-display: 'Lora', Georgia, serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+  --green:       #1a7a3c;
+  --green-mid:   #2ea043;
+  --green-light: #4caf6e;
+  --green-glow:  rgba(30,122,60,0.14);
+  --amber:       #b45309;
+  --amber-lt:    #d97706;
+  --red:         #c0392b;
+}
+[data-theme="light"] {
+  --bg:         #f7f6f2;
+  --bg2:        #efede8;
+  --surface:    #ffffff;
+  --surface2:   #f4f2ed;
+  --border:     #ddd9d1;
+  --border2:    #e9e5df;
+  --text:       #1c1c1c;
+  --text2:      #444;
+  --muted:      #6b6560;
+  --muted2:     #9a948e;
+  --hbg:        #1a7a3c;
+  --htxt:       #ffffff;
+  --shadow:     0 2px 12px rgba(0,0,0,0.07),0 1px 3px rgba(0,0,0,0.04);
+  --nav-bg:     #1a7a3c;
+  --inp-bg:     #faf9f7;
+  --code-bg:    #f0ede6;
+  --code-txt:   #2d2d2d;
+  --acc:        #1a7a3c;
+  --plt-bg:     #ffffff;
+  --plt-grid:   rgba(0,0,0,0.055);
+  --plt-txt:    #2d2d2d;
+  --plt-axis:   rgba(0,0,0,0.14);
+}
+[data-theme="dark"] {
+  --bg:         #0d1117;
+  --bg2:        #0a0e14;
+  --surface:    #161b22;
+  --surface2:   #1c2330;
+  --border:     #2a3444;
+  --border2:    #222b38;
+  --text:       #e6edf3;
+  --text2:      #c9d1d9;
+  --muted:      #8b949e;
+  --muted2:     #6e7681;
+  --hbg:        #1a5c2a;
+  --htxt:       #7ee89a;
+  --shadow:     0 2px 18px rgba(0,0,0,0.4);
+  --nav-bg:     #111820;
+  --inp-bg:     #0d1117;
+  --code-bg:    #0d1117;
+  --code-txt:   #7ee89a;
+  --acc:        #4caf6e;
+  --plt-bg:     #161b22;
+  --plt-grid:   rgba(255,255,255,0.05);
+  --plt-txt:    #c9d1d9;
+  --plt-axis:   rgba(255,255,255,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;line-height:1.5;min-height:100vh;transition:background .3s,color .3s}
+/* NAV */
+header{background:var(--nav-bg);height:56px;display:flex;align-items:center;padding:0 26px;gap:0;position:sticky;top:0;z-index:200;box-shadow:0 2px 14px rgba(0,0,0,0.18);transition:background .3s}
+.logo{font-family:var(--font-display);font-size:1.22rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:9px;flex-shrink:0}
+.logo-icon{color:#7ee89a;font-size:1.1rem}
+.logo-ver{font-family:var(--font-mono);font-size:.56rem;background:rgba(255,255,255,.14);padding:2px 7px;border-radius:10px;letter-spacing:.5px;vertical-align:middle}
+.nav-tabs{display:flex;gap:2px;margin-left:32px;flex:1}
+.nav-tab{background:transparent;border:none;color:rgba(255,255,255,.62);font-family:var(--font-body);font-size:13px;font-weight:500;padding:7px 14px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .18s;white-space:nowrap}
+.nav-tab:hover{color:#fff;background:rgba(255,255,255,.1)}
+.nav-tab.active{color:#fff;background:rgba(255,255,255,.18);font-weight:600}
+.theme-btn{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-family:var(--font-body);font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s;flex-shrink:0}
+.theme-btn:hover{background:rgba(255,255,255,.22)}
+/* LAYOUT */
+.app{padding:22px 26px 80px;max-width:1440px;margin:0 auto}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sec-title{font-family:var(--font-display);font-size:1.13rem;font-weight:700;color:var(--text);margin-bottom:17px;padding-bottom:10px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:9px}
+.sec-title i{color:var(--green-mid)}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);transition:background .3s,border-color .3s}
+.ch{background:var(--hbg);color:var(--htxt);padding:10px 17px;font-family:var(--font-mono);font-size:10.5px;font-weight:500;letter-spacing:1.4px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.cb{padding:17px}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+.gsb{display:grid;grid-template-columns:314px 1fr;gap:17px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.fcol{display:flex;flex-direction:column;gap:15px}
+.mt15{margin-top:15px}
+/* FORMS */
+.field{margin-bottom:12px}
+label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;margin-bottom:5px}
+input[type=text],input[type=number],select,textarea{width:100%;background:var(--inp-bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-body);font-size:13px;padding:8px 11px;outline:none;transition:border-color .18s,box-shadow .18s,background .3s}
+input:focus,select:focus,textarea:focus{border-color:var(--green-mid);box-shadow:0 0 0 3px var(--green-glow)}
+textarea{resize:vertical;font-family:var(--font-mono);font-size:11.5px;line-height:1.75;min-height:108px}
+.cr{display:flex;align-items:center;gap:9px;margin-bottom:9px;cursor:pointer}
+.cr input[type=checkbox]{width:15px;height:15px;accent-color:var(--green-mid);cursor:pointer;margin:0;padding:0}
+.cr span{font-size:13px;color:var(--text2);text-transform:none;letter-spacing:0;font-weight:400}
+.clr-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.clr-row label{margin:0;flex:1;font-size:12px;text-transform:none;letter-spacing:0;color:var(--text2);font-weight:500}
+.clr-row input[type=color]{width:33px;height:31px;border:1px solid var(--border);border-radius:5px;background:none;padding:2px;cursor:pointer;margin:0}
+.sep{height:1px;background:var(--border2);margin:13px 0}
+.hint{font-size:11px;color:var(--muted2);margin-top:-7px;margin-bottom:10px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-body);font-size:13px;font-weight:600;padding:9px 17px;border-radius:7px;border:none;cursor:pointer;transition:all .18s;text-decoration:none}
+.btn-p{background:var(--green);color:#fff}
+.btn-p:hover{background:var(--green-mid);transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,122,60,.28)}
+.btn-bl{width:100%;justify-content:center}
+.btn-sm{padding:7px 13px;font-size:12px}
+.btn-g{background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
+.btn-g:hover{border-color:var(--green-mid);color:var(--green)}
+.bgrp{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+/* DATA INPUT */
+.col-box{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:13px;transition:background .3s}
+.col-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:1.2px;color:var(--amber-lt);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.col-box textarea{background:var(--inp-bg);margin:0;height:136px}
+.badge{display:inline-block;font-family:var(--font-mono);font-size:10px;padding:3px 9px;border-radius:20px;margin-top:5px}
+.b-ok{background:rgba(46,160,67,.1);border:1px solid rgba(46,160,67,.28);color:var(--green-mid)}
+.b-err{background:rgba(192,57,43,.09);border:1px solid rgba(192,57,43,.22);color:var(--red)}
+/* TABLES */
+.tw{overflow-x:auto;border-radius:7px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{background:var(--hbg);color:var(--htxt);font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:9px 13px;text-align:left;border-bottom:1px solid rgba(255,255,255,.09)}
+tbody tr{border-bottom:1px solid var(--border2)}
+tbody tr:last-child{border:none}
+tbody tr:hover{background:rgba(26,122,60,.04)}
+tbody td{padding:8px 13px;color:var(--text2)}
+/* PLOT */
+.plot-wrap{position:relative;background:var(--plt-bg);border:1px solid var(--border);border-radius:8px;padding:14px;min-height:450px;transition:background .3s}
+.plot-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:390px;gap:13px;color:var(--muted2);text-align:center}
+.plot-empty i{font-size:2.7rem;color:var(--border)}
+.plot-empty p{font-family:var(--font-mono);font-size:12px;color:var(--muted2);line-height:1.7}
+/* SUMMARY PANEL */
+.sum-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);margin-top:17px;transition:background .3s}
+.sum-head{background:var(--hbg);color:var(--htxt);padding:10px 17px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.qs-strip{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border2)}
+.qs-item{padding:14px 17px;border-right:1px solid var(--border2);text-align:center}
+.qs-item:last-child{border-right:none}
+.qs-num{font-family:var(--font-display);font-size:1.55rem;font-weight:700;color:var(--acc);line-height:1.1;display:block}
+.qs-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-top:3px;display:block}
+.scode-wrap{padding:15px 17px}
+.scode{background:var(--code-bg);border:1px solid var(--border2);border-radius:7px;padding:13px 15px;font-family:var(--font-mono);font-size:11.5px;line-height:1.88;color:var(--code-txt);white-space:pre;overflow-x:auto;transition:background .3s,color .3s}
+.sc-h{color:var(--green-mid);font-weight:700}
+.sc-s{color:var(--muted2)}
+.sc-v{color:var(--acc);font-weight:600}
+.sc-l{color:var(--amber-lt)}
+.sc-sec{color:var(--green-light);font-weight:600}
+.grp-tbl-wrap{padding:0 17px 15px}
+/* STAT BOX */
+.sbox{background:var(--code-bg);border:1px solid var(--border2);border-radius:7px;padding:13px 15px;font-family:var(--font-mono);font-size:11.5px;line-height:1.88;color:var(--muted);white-space:pre;overflow-x:auto;min-height:60px;transition:background .3s}
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green-mid);color:var(--text);padding:11px 17px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 8px 26px rgba(0,0,0,.14);transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:9999;max-width:300px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.err{border-left-color:var(--red)}
+/* FOOTER */
+.footer{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border2);padding:7px 26px;display:flex;align-items:center;gap:16px;font-size:11.5px;color:var(--muted);z-index:100;transition:background .3s}
+.footer a{color:var(--green-mid);text-decoration:none;display:flex;align-items:center;gap:5px}
+.footer a:hover{text-decoration:underline}
+.footer strong{color:var(--text2)}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted2)}
+@media(max-width:960px){.gsb,.g2,.g3{grid-template-columns:1fr}.qs-strip{grid-template-columns:1fr 1fr}.app{padding:13px 13px 70px}.nav-tabs{display:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <i class="fas fa-wave-square logo-icon"></i>
+    KMPlotGenie<span class="logo-ver">v1.0</span>
+  </div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('data')"     id="tab-data"><i class="fas fa-database"></i> Data Input</button>
+    <button class="nav-tab"        onclick="switchTab('analysis')" id="tab-analysis"><i class="fas fa-chart-line"></i> Survival Analysis</button>
+    <button class="nav-tab"        onclick="switchTab('table')"    id="tab-table"><i class="fas fa-table"></i> Survival Table</button>
+  </nav>
+  <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">
+    <i class="fas fa-moon" id="theme-icon"></i><span id="theme-lbl">Dark Mode</span>
+  </button>
+</header>
+
+<div class="app">
+
+<!-- ══════ TAB 1: DATA ══════ -->
+<div class="tab-panel active" id="panel-data">
+  <div class="sec-title"><i class="fas fa-database"></i> Data Input</div>
+  <div class="card">
+    <div class="ch"><i class="fas fa-paste"></i> Paste Column Data</div>
+    <div class="cb">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:14px;">Copy each column from your spreadsheet and paste it into the box below. One value per line — rows must align across all columns.</p>
+      <div class="g3" style="margin-bottom:13px;">
+        <div class="col-box">
+          <div class="col-lbl"><i class="fas fa-clock"></i> Time Variable</div>
+          <textarea id="inp-time" placeholder="Paste numeric time values&#10;one per line, e.g.:&#10;12&#10;24&#10;36&#10;8&#10;48" spellcheck="false"></textarea>
+          <span id="bdg-time" class="badge b-ok" style="display:none"></span>
+        </div>
+        <div class="col-box">
+          <div class="col-lbl"><i class="fas fa-circle-dot"></i> Event Variable</div>
+          <textarea id="inp-event" placeholder="0 = censored&#10;1 = event occurred&#10;e.g.:&#10;1&#10;0&#10;1&#10;1&#10;0" spellcheck="false"></textarea>
+          <span id="bdg-event" class="badge b-ok" style="display:none"></span>
+        </div>
+        <div class="col-box">
+          <div class="col-lbl"><i class="fas fa-layer-group"></i> Group Variable <span style="color:var(--muted2);font-size:9px">(OPTIONAL)</span></div>
+          <textarea id="inp-group" placeholder="Group labels — optional&#10;Leave empty = no grouping&#10;e.g.:&#10;Treatment&#10;Control&#10;Treatment&#10;Control" spellcheck="false"></textarea>
+          <span id="bdg-group" class="badge b-ok" style="display:none"></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-p" onclick="loadData()"><i class="fas fa-upload"></i> Load Data</button>
+        <button class="btn btn-g btn-sm" onclick="loadDemo()"><i class="fas fa-flask"></i> Load Demo Dataset</button>
+        <button class="btn btn-g btn-sm" onclick="clearAll()"><i class="fas fa-trash-alt"></i> Clear</button>
+        <span id="dstat" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-left:4px;"></span>
+      </div>
+    </div>
+  </div>
+  <div id="prev-sec" style="display:none;" class="mt15">
+    <div class="card">
+      <div class="ch"><i class="fas fa-eye"></i> Data Preview</div>
+      <div class="cb">
+        <div class="tw"><table><thead id="prev-head"></thead><tbody id="prev-body"></tbody></table></div>
+        <p id="prev-info" style="font-size:11.5px;color:var(--muted);margin-top:8px;font-family:var(--font-mono);"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB 2: ANALYSIS ══════ -->
+<div class="tab-panel" id="panel-analysis">
+  <div class="sec-title"><i class="fas fa-chart-line"></i> Kaplan–Meier Survival Analysis</div>
+  <div class="gsb">
+    <!-- Sidebar -->
+    <div class="fcol">
+      <div class="card">
+        <div class="ch"><i class="fas fa-sliders"></i> Plot Parameters</div>
+        <div class="cb">
+          <div class="field"><label>Plot Title</label><input type="text" id="ptitle" value="Kaplan–Meier Survival Curve"></div>
+          <div class="field"><label>X-axis Label</label><input type="text" id="xlab" value="Time"></div>
+          <div class="field"><label>Y-axis Label</label><input type="text" id="ylab" value="Survival Probability"></div>
+          <div class="field"><label>Legend Title</label><input type="text" id="legtitle" value="Group"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="field"><label>Font Size</label><input type="number" id="fsize" value="13" min="8" max="22"></div>
+            <div class="field"><label>Plot Theme</label>
+              <select id="ptheme">
+                <option value="light" selected>Light</option>
+                <option value="dark">Dark</option>
+                <option value="minimal">Minimal</option>
+                <option value="classic">Classic</option>
+              </select>
+            </div>
+          </div>
+          <div class="sep"></div>
+          <label style="margin-bottom:9px;">Display Options</label>
+          <label class="cr"><input type="checkbox" id="opt-ci"     checked><span>Confidence Interval</span></label>
+          <label class="cr"><input type="checkbox" id="opt-pval"   checked><span>P-value on plot</span></label>
+          <label class="cr"><input type="checkbox" id="opt-risk"   checked><span>Risk table</span></label>
+          <label class="cr"><input type="checkbox" id="opt-median" checked><span>Median survival line</span></label>
+          <label class="cr"><input type="checkbox" id="opt-censor" checked><span>Censor marks</span></label>
+          <label class="cr"><input type="checkbox" id="opt-cumev"       ><span>Cumulative events</span></label>
+          <div class="sep"></div>
+          <div id="clr-sec" style="display:none;">
+            <label style="margin-bottom:9px;">Group Colors</label>
+            <div id="clr-wrap"></div>
+            <div class="sep"></div>
+          </div>
+          <button class="btn btn-p btn-bl" onclick="genPlot()"><i class="fas fa-play"></i> Generate Survival Plot</button>
+        </div>
+      </div>
+      <div class="card" id="lr-card" style="display:none;">
+        <div class="ch"><i class="fas fa-calculator"></i> Log-Rank Test</div>
+        <div class="cb">
+          <div class="sbox" id="lr-out">—</div>
+          <div class="bgrp"><button class="btn btn-g btn-sm" onclick="dlLR()"><i class="fas fa-download"></i> Download .txt</button></div>
+        </div>
+      </div>
+    </div>
+    <!-- Plot -->
+    <div class="fcol">
+      <div class="card">
+        <div class="ch"><i class="fas fa-chart-area"></i> Kaplan–Meier Plot</div>
+        <div class="cb" style="padding:13px;">
+          <div class="plot-wrap" id="plot-wrap" style="height:470px;">
+            <div class="plot-empty" id="plot-empty">
+              <i class="fas fa-chart-line"></i>
+              <p>Load data then click<br>"Generate Survival Plot"</p>
+            </div>
+            <canvas id="km-cv" style="display:none;width:100%;height:100%;"></canvas>
+          </div>
+          <div id="risk-sec" style="display:none;margin-top:11px;">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;"><i class="fas fa-users"></i> Number at Risk</div>
+            <div class="tw"><table id="risk-tbl"><thead></thead><tbody></tbody></table></div>
+          </div>
+          <div class="bgrp">
+            <button class="btn btn-g btn-sm" onclick="dlPlot('png')"><i class="fas fa-image"></i> PNG</button>
+            <button class="btn btn-g btn-sm" onclick="dlPlot('jpeg')"><i class="fas fa-file-image"></i> JPEG</button>
+            <button class="btn btn-g btn-sm" onclick="dlPlot('svg')"><i class="fas fa-file-code"></i> SVG</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY PANEL -->
+  <div class="sum-panel" id="sum-panel" style="display:none;">
+    <div class="sum-head"><i class="fas fa-chart-pie"></i> Survival Analysis Summary</div>
+    <!-- Quick stats -->
+    <div class="qs-strip">
+      <div class="qs-item"><span class="qs-num" id="qs-n">—</span><span class="qs-lbl">Total Observations</span></div>
+      <div class="qs-item"><span class="qs-num" id="qs-ev" style="color:var(--red)">—</span><span class="qs-lbl">Events</span></div>
+      <div class="qs-item"><span class="qs-num" id="qs-ce" style="color:var(--amber-lt)">—</span><span class="qs-lbl">Censored</span></div>
+      <div class="qs-item"><span class="qs-num" id="qs-gr" style="color:var(--green-mid)">—</span><span class="qs-lbl">Groups</span></div>
+    </div>
+    <!-- R-style code block -->
+    <div class="scode-wrap">
+      <div class="scode" id="scode">—</div>
+    </div>
+    <!-- Group table -->
+    <div class="grp-tbl-wrap">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;"><i class="fas fa-layer-group"></i> Group-level Detail</div>
+      <div class="tw"><table id="grp-tbl"><thead></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ TAB 3: TABLE ══════ -->
+<div class="tab-panel" id="panel-table">
+  <div class="sec-title"><i class="fas fa-table"></i> Survival Table Generator</div>
+  <div class="g2">
+    <div class="card">
+      <div class="ch"><i class="fas fa-gear"></i> Table Parameters</div>
+      <div class="cb">
+        <div class="field"><label>Time Points (comma separated)</label><input type="text" id="tpts" placeholder="e.g. 30, 60, 90, 180, 365"></div>
+        <p class="hint">Leave empty to use all observed event times</p>
+        <label class="cr"><input type="checkbox" id="tbl-ci"  checked><span>Show Confidence Intervals</span></label>
+        <label class="cr"><input type="checkbox" id="tbl-med" checked><span>Show Median Survival</span></label>
+        <div class="sep"></div>
+        <button class="btn btn-p btn-bl" onclick="genTable()"><i class="fas fa-table"></i> Generate Survival Table</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><i class="fas fa-info-circle"></i> Median Survival Summary</div>
+      <div class="cb"><div class="sbox" id="med-sum">Run the analysis first, then generate the table.</div></div>
+    </div>
+  </div>
+  <div class="card mt15" id="stbl-card" style="display:none;margin-top:15px;">
+    <div class="ch"><i class="fas fa-table"></i> Survival Probability Table</div>
+    <div class="cb">
+      <div class="tw"><table><thead id="stbl-head"></thead><tbody id="stbl-body"></tbody></table></div>
+      <div class="bgrp">
+        <button class="btn btn-g btn-sm" onclick="dlCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+        <button class="btn btn-g btn-sm" onclick="dlHTML()"><i class="fas fa-file-word"></i> HTML (Word-ready)</button>
+        <button class="btn btn-g btn-sm" onclick="cpTSV()"><i class="fas fa-copy"></i> Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<div id="toast"></div>
+<div class="footer">
+  Built with ❤️ in Ghana by <strong>Mudasir Mohammed Ibrahim</strong>
+  <a href="mailto:mudassiribrahim30@gmail.com"><i class="fas fa-envelope"></i> Email</a>
+  <a href="https://www.researchgate.net/profile/Mudasir-Ibrahim" target="_blank"><i class="fas fa-graduation-cap"></i> ResearchGate</a>
+  <a href="https://github.com/mudassiribrahim30" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────
+let D={time:[],event:[],group:[],hasG:false,groups:[]};
+let FIT=null,CHART=null,TBLDATA=[];
+const GCOL=['#1a7a3c','#c0392b','#1d6fa4','#b45309','#6c3483','#117a65','#784212','#1a5276'];
+
+// ── THEME ─────────────────────────────────────
+function toggleTheme(){
+  const h=document.documentElement,dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  document.getElementById('theme-icon').className=dark?'fas fa-moon':'fas fa-sun';
+  document.getElementById('theme-lbl').textContent=dark?'Dark Mode':'Light Mode';
+}
+
+// ── TABS ──────────────────────────────────────
+function switchTab(n){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+n).classList.add('active');
+  document.getElementById('tab-'+n).classList.add('active');
+}
+
+// ── TOAST ─────────────────────────────────────
+let _tt;
+function toast(m,t='ok'){
+  const e=document.getElementById('toast');
+  e.textContent=m;e.className='show'+(t==='err'?' err':'');
+  clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('show'),3200);
+}
+
+// ── PARSE ─────────────────────────────────────
+function pCol(s){return s.trim().split(/[\n\r,\t]+/).map(v=>v.trim()).filter(v=>v!=='');}
+
+// ── LOAD DATA ─────────────────────────────────
+function loadData(){
+  const tR=document.getElementById('inp-time').value;
+  const eR=document.getElementById('inp-event').value;
+  const gR=document.getElementById('inp-group').value;
+  const tA=pCol(tR).map(Number),eA=pCol(eR).map(Number),gA=gR.trim()?pCol(gR):[];
+  if(!tA.length||!eA.length){toast('Paste Time and Event data.','err');return;}
+  if(tA.some(isNaN)||eA.some(isNaN)){toast('Time & Event must be numeric.','err');return;}
+  if(tA.length!==eA.length){toast(`Row mismatch: Time=${tA.length} Event=${eA.length}`,'err');return;}
+  if(gA.length&&gA.length!==tA.length){toast(`Row mismatch: Group=${gA.length} vs Time=${tA.length}`,'err');return;}
+  const v=tA.map((t,i)=>({t,e:eA[i],g:gA[i]||'All'})).filter(r=>!isNaN(r.t)&&!isNaN(r.e)&&r.t>=0);
+  D.time=v.map(r=>r.t);D.event=v.map(r=>r.e);
+  D.group=gA.length?v.map(r=>r.g):v.map(()=>'All');
+  D.hasG=gA.length>0;D.groups=[...new Set(D.group)].sort();
+  setBdg('time',tA.length+' values');setBdg('event',eA.length+' values');
+  if(gA.length)setBdg('group',D.groups.length+' groups: '+D.groups.join(', '));
+  showPreview();updClr();
+  document.getElementById('dstat').textContent='✓ '+v.length+' rows | '+D.groups.length+' group(s)';
+  toast('Loaded '+v.length+' observations');
+}
+function setBdg(id,t){const e=document.getElementById('bdg-'+id);e.textContent=t;e.style.display='inline-block';}
+function clearAll(){
+  ['inp-time','inp-event','inp-group'].forEach(id=>document.getElementById(id).value='');
+  ['bdg-time','bdg-event','bdg-group'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('prev-sec').style.display='none';
+  document.getElementById('dstat').textContent='';
+  D={time:[],event:[],group:[],hasG:false,groups:[]};FIT=null;TBLDATA=[];
+  document.getElementById('sum-panel').style.display='none';
+  toast('Data cleared');
+}
+function showPreview(){
+  document.getElementById('prev-sec').style.display='block';
+  const cols=D.hasG?['#','Time','Event','Group']:['#','Time','Event'];
+  document.getElementById('prev-head').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+  const rows=Math.min(D.time.length,25);
+  document.getElementById('prev-body').innerHTML=Array.from({length:rows},(_,i)=>{
+    let r=`<tr><td>${i+1}</td><td>${D.time[i]}</td><td>${D.event[i]}</td>`;
+    if(D.hasG)r+=`<td>${D.group[i]}</td>`;return r+'</tr>';
+  }).join('');
+  document.getElementById('prev-info').textContent=`Showing first ${rows} of ${D.time.length} rows`;
+}
+function loadDemo(){
+  const T=[306,455,1010,210,883,1022,310,361,218,166,170,654,728,71,567,144,613,707,61,88,301,81,624,371,394,520,574,118,390,12,473,26,533,107,53,122,814,965,93,731,460,153,433,145,583,95,303,519,643,765];
+  const E=[1,1,0,1,1,0,1,1,1,1,1,1,0,1,0,1,0,0,1,1,1,1,0,1,1,0,0,1,1,1,0,1,0,1,1,1,0,0,1,1,1,1,0,1,0,1,1,0,0,0];
+  const G=['Male','Male','Female','Female','Male','Male','Female','Male','Female','Male','Female','Male','Female','Male','Male','Female','Female','Male','Male','Female','Male','Female','Male','Male','Female','Female','Male','Female','Male','Male','Female','Female','Male','Male','Female','Male','Female','Female','Male','Female','Male','Male','Female','Female','Male','Female','Male','Female','Male','Female'];
+  document.getElementById('inp-time').value=T.join('\n');
+  document.getElementById('inp-event').value=E.join('\n');
+  document.getElementById('inp-group').value=G.join('\n');
+  loadData();toast('Demo lung cancer dataset loaded');
+}
+function updClr(){
+  const s=document.getElementById('clr-sec'),w=document.getElementById('clr-wrap');
+  if(D.groups.length<=1){s.style.display='none';return;}
+  s.style.display='block';
+  w.innerHTML=D.groups.map((g,i)=>`<div class="clr-row"><label>${g}</label><input type="color" id="cp-${i}" value="${GCOL[i%GCOL.length]}"></div>`).join('');
+}
+function getClrs(){return D.groups.map((_,i)=>{const e=document.getElementById('cp-'+i);return e?e.value:GCOL[i%GCOL.length];});}
+
+// ── KM ────────────────────────────────────────
+function km(times,events){
+  const n=times.length;
+  const s=times.map((t,i)=>({t,e:events[i]})).sort((a,b)=>a.t-b.t);
+  const steps=[{t:0,surv:1,lower:1,upper:1,nRisk:n,nEvent:0,nCensor:0}];
+  let S=1,V=0,atR=n,idx=0;
+  const eTimes=[...new Set(s.filter(r=>r.e===1).map(r=>r.t))].sort((a,b)=>a-b);
+  for(const t of eTimes){
+    while(idx<s.length&&s[idx].t<t){if(s[idx].e===0)atR--;idx++;}
+    let d=0,c=0;
+    while(idx<s.length&&s[idx].t===t){s[idx].e===1?d++:c++;idx++;}
+    if(atR>0&&d>0){
+      S*=(atR-d)/atR;V+=d/(atR*(atR-d));
+      const se=Math.sqrt(S*S*V),z=1.96;
+      steps.push({t,surv:S,lower:Math.max(0,S-z*se),upper:Math.min(1,S+z*se),nRisk:atR,nEvent:d,nCensor:c});
+      atR-=(d+c);
+    }
+  }
+  return{steps,censors:s.filter(r=>r.e===0).map(r=>r.t),n};
+}
+function survAt(steps,t){let s=1;for(const st of steps){if(st.t<=t)s=st.surv;else break;}return s;}
+function medSurv(steps){for(const s of steps)if(s.surv<=0.5)return s.t;return null;}
+function medCI(steps){
+  let lo=null,hi=null;
+  for(const s of steps)if(s.upper<=0.5&&lo===null)lo=s.t;
+  for(const s of steps)if(s.lower<=0.5&&hi===null)hi=s.t;
+  return{lo,hi};
+}
+function logrank(gfs){
+  const allT=[...new Set(gfs.flatMap(g=>g.times.filter((_,i)=>g.events[i]===1)))].sort((a,b)=>a-b);
+  let O=gfs.map(()=>0),E=gfs.map(()=>0);
+  for(const t of allT){
+    const nI=gfs.map(g=>g.times.filter(ti=>ti>=t).length);
+    const dI=gfs.map(g=>g.times.filter((ti,i)=>ti===t&&g.events[i]===1).length);
+    const N=nI.reduce((a,b)=>a+b,0),Dv=dI.reduce((a,b)=>a+b,0);
+    if(N<=1)continue;
+    for(let k=0;k<gfs.length;k++){O[k]+=dI[k];E[k]+=nI[k]*Dv/N;}
+  }
+  let chi2=0;
+  for(let k=0;k<gfs.length;k++){const d=O[k]-E[k];if(E[k]>0)chi2+=d*d/E[k];}
+  return{chi2,df:gfs.length-1,O,E,pval:1-c2CDF(chi2,gfs.length-1)};
+}
+function c2CDF(x,k){return x<0?0:gCDF(x/2,k/2);}
+function gCDF(x,a){if(x<=0)return 0;return x<a+1?gSerP(a,x):1-gCF(a,x);}
+function gSerP(a,x){let t=1/a,s=t;for(let i=1;i<200;i++){t*=x/(a+i);s+=t;if(Math.abs(t)<1e-10*Math.abs(s))break;}return s*Math.exp(-x+a*Math.log(x)-lgam(a));}
+function gCF(a,x){let f=x+1e-30,C=f,D=0,h=f;for(let i=1;i<=200;i++){let an=-i*(i-a);D=x+an*D+1e-30;C=x+an/C+1e-30;D=1/D;h*=D*C;an=i+.5-a;D=1/(x+an*D+1e-30);C=x+an/C+1e-30;D=1;h*=D*C;if(Math.abs(D*C-1)<1e-10)break;}return Math.exp(-x+a*Math.log(x)-lgam(a))/h;}
+function lgam(z){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,1.20865097386618e-3,-5.395239384953e-6];let x=z,y=z,tmp=x+5.5;tmp-=(x+.5)*Math.log(tmp);let s=1.000000000190015;for(let j=0;j<6;j++){y++;s+=c[j]/y;}return -tmp+Math.log(2.5066282746310005*s/x);}
+function fmtP(p){return p<0.001?'< 0.001':p.toFixed(3);}
+function h2r(h,a){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
+
+// ── GENERATE PLOT ─────────────────────────────
+function genPlot(){
+  if(!D.time.length){toast('Load data first.','err');return;}
+  const cols=getClrs();
+  const gfs=D.groups.map((g,gi)=>{
+    const idx=D.group.map((gr,i)=>gr===g?i:-1).filter(i=>i>=0);
+    return{g,fit:km(idx.map(i=>D.time[i]),idx.map(i=>D.event[i])),times:idx.map(i=>D.time[i]),events:idx.map(i=>D.event[i]),color:cols[gi]};
+  });
+  FIT=gfs;
+  let lr=null;
+  if(D.hasG&&D.groups.length>=2){
+    lr=logrank(gfs.map(gf=>({times:gf.times,events:gf.events})));
+    renderLR(lr);document.getElementById('lr-card').style.display='block';
+  }else document.getElementById('lr-card').style.display='none';
+  drawChart(gfs,lr);
+  renderRisk(gfs);
+  renderSummary(gfs,lr);
+  switchTab('analysis');
+  toast('Survival plot generated');
+}
+
+// ── DRAW CHART ────────────────────────────────
+function drawChart(gfs,lr){
+  const cv=document.getElementById('km-cv');
+  document.getElementById('plot-empty').style.display='none';
+  cv.style.display='block';
+  if(CHART){CHART.destroy();CHART=null;}
+  const showCI=document.getElementById('opt-ci').checked;
+  const showMed=document.getElementById('opt-median').checked;
+  const showCen=document.getElementById('opt-censor').checked;
+  const showCE=document.getElementById('opt-cumev').checked;
+  const showPv=document.getElementById('opt-pval').checked;
+  const title=document.getElementById('ptitle').value;
+  const xl=document.getElementById('xlab').value;
+  const yl=showCE?'Cumulative Events':document.getElementById('ylab').value;
+  const theme=document.getElementById('ptheme').value;
+  const fs=parseInt(document.getElementById('fsize').value)||13;
+  const dk=theme==='dark'||theme==='minimal';
+  const bgC=dk?'#161b22':'#ffffff';
+  const griC=dk?'rgba(255,255,255,.05)':'rgba(0,0,0,.055)';
+  const txC=dk?'#c9d1d9':'#2d2d2d';
+  const axC=dk?'rgba(255,255,255,.12)':'rgba(0,0,0,.14)';
+  const maxT=Math.max(...D.time);
+  const sets=[];
+  const toY=v=>showCE?1-v:v;
+  for(const gf of gfs){
+    const{steps,censors}=gf.fit;const c=gf.color;
+    const ld=[{x:0,y:showCE?0:1}];
+    for(let i=1;i<steps.length;i++){ld.push({x:steps[i].t,y:toY(steps[i-1].surv)});ld.push({x:steps[i].t,y:toY(steps[i].surv)});}
+    if(steps.length)ld.push({x:maxT,y:toY(steps[steps.length-1].surv)});
+    sets.push({label:gf.g,data:ld,borderColor:c,backgroundColor:'transparent',borderWidth:2.5,pointRadius:0,tension:0,order:1,type:'line'});
+    if(showCI&&steps.length>1){
+      const up=[{x:0,y:toY(1)}],lo=[{x:0,y:toY(1)}];
+      for(let i=1;i<steps.length;i++){
+        up.push({x:steps[i].t,y:toY(steps[i-1].upper)});up.push({x:steps[i].t,y:toY(steps[i].upper)});
+        lo.push({x:steps[i].t,y:toY(steps[i-1].lower)});lo.push({x:steps[i].t,y:toY(steps[i].lower)});
+      }
+      const ls=steps[steps.length-1];
+      up.push({x:maxT,y:toY(ls.upper)});lo.push({x:maxT,y:toY(ls.lower)});
+      sets.push({label:'__u'+gf.g,data:up,borderColor:'transparent',backgroundColor:h2r(c,.11),pointRadius:0,fill:'+1',tension:0,order:2,type:'line'});
+      sets.push({label:'__l'+gf.g,data:lo,borderColor:'transparent',backgroundColor:h2r(c,.11),pointRadius:0,fill:false,tension:0,order:2,type:'line'});
+    }
+    if(showCen&&censors.length)sets.push({label:'__cn'+gf.g,data:censors.map(ct=>({x:ct,y:toY(survAt(steps,ct))})),type:'scatter',pointStyle:'crossRot',pointRadius:6,pointBorderWidth:2,borderColor:c,backgroundColor:c,showLine:false,order:0});
+    if(showMed){const m=medSurv(steps);if(m!==null)sets.push({label:'__med'+gf.g,data:[{x:0,y:.5},{x:m,y:.5},{x:m,y:0}],borderColor:c,borderDash:[5,4],backgroundColor:'transparent',borderWidth:1.4,pointRadius:0,tension:0,order:1,type:'line'});}
+  }
+  const pvTxt=(showPv&&lr)?`p = ${fmtP(lr.pval)}`:'';
+  const legT=document.getElementById('legtitle').value;
+  CHART=new Chart(cv,{
+    type:'line',data:{datasets:sets},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:500,easing:'easeOutCubic'},
+      scales:{
+        x:{type:'linear',min:0,title:{display:true,text:xl,color:txC,font:{size:fs,family:"'Outfit',sans-serif"}},ticks:{color:txC,font:{size:fs-2}},grid:{color:griC},border:{color:axC}},
+        y:{min:0,max:1,title:{display:true,text:yl,color:txC,font:{size:fs,family:"'Outfit',sans-serif"}},ticks:{color:txC,font:{size:fs-2},callback:v=>v.toFixed(1)},grid:{color:griC},border:{color:axC}}
+      },
+      plugins:{
+        legend:{display:true,position:'top',labels:{color:txC,font:{size:fs-1,family:"'Outfit',sans-serif"},filter:i=>!i.text.startsWith('__'),boxWidth:26,boxHeight:2},title:{display:!!legT,text:legT,color:txC}},
+        title:{display:!!title,text:title,color:txC,font:{size:fs+2,weight:'bold',family:"'Lora',serif"},padding:{bottom:11}},
+        tooltip:{filter:i=>!i.dataset.label.startsWith('__'),callbacks:{title:it=>`Time: ${it[0].parsed.x}`,label:it=>it.dataset.label.startsWith('__')?null:` ${it.dataset.label}: ${it.parsed.y.toFixed(3)}`}},
+        _pv:{txt:pvTxt}
+      },layout:{padding:{right:16,top:8}}
+    },
+    plugins:[
+      {id:'bg',beforeDraw(ch){const c=ch.ctx;c.save();c.fillStyle=bgC;c.fillRect(0,0,ch.width,ch.height);c.restore();}},
+      {id:'pv',afterDatasetsDraw(ch){
+        const{txt}=ch.options.plugins._pv;if(!txt)return;
+        const ctx=ch.ctx,{top,right}=ch.chartArea;
+        ctx.save();ctx.font=`bold ${fs-1}px 'DM Mono',monospace`;
+        ctx.fillStyle='#b45309';ctx.textAlign='right';ctx.fillText(txt,right-10,top+18);ctx.restore();
+      }}
+    ]
+  });
+}
+
+// ── RISK TABLE ────────────────────────────────
+function renderRisk(gfs){
+  const sec=document.getElementById('risk-sec');
+  if(!document.getElementById('opt-risk').checked){sec.style.display='none';return;}
+  sec.style.display='block';
+  const maxT=Math.max(...D.time),tk=6;
+  const pts=Array.from({length:tk+1},(_,i)=>Math.round(i*maxT/tk));
+  document.querySelector('#risk-tbl thead').innerHTML='<tr><th>Group</th>'+pts.map(t=>`<th>${t}</th>`).join('')+'</tr>';
+  document.querySelector('#risk-tbl tbody').innerHTML=gfs.map(gf=>'<tr><td style="color:'+gf.color+';font-weight:600">'+gf.g+'</td>'+pts.map(t=>'<td>'+gf.times.filter(ti=>ti>=t).length+'</td>').join('')+'</tr>').join('');
+}
+
+// ── LOG-RANK ──────────────────────────────────
+function renderLR(r){
+  const pc=r.pval<.05?'#1a7a3c':'#6b6560';
+  document.getElementById('lr-out').innerHTML=
+    `<span style="color:var(--green-mid);font-weight:700">Log-Rank Test Results\n</span>`+
+    `──────────────────────────────\n`+
+    `Chi-squared:        <span style="color:var(--amber-lt)">${r.chi2.toFixed(4)}</span>\n`+
+    `Degrees of freedom: ${r.df}\n`+
+    `p-value:            <span style="color:${pc};font-weight:700">${fmtP(r.pval)}</span>\n\n`+
+    `Group Summary:\n`+
+    D.groups.map((g,i)=>`  ${g.padEnd(16)} O=${r.O[i]}  E=${r.E[i].toFixed(2)}`).join('\n');
+}
+
+// ── SUMMARY PANEL ─────────────────────────────
+function renderSummary(gfs,lr){
+  const panel=document.getElementById('sum-panel');
+  panel.style.display='block';
+  const n=D.time.length,ev=D.event.filter(e=>e===1).length,ce=n-ev,ng=D.groups.length;
+  document.getElementById('qs-n').textContent=n;
+  document.getElementById('qs-ev').textContent=ev;
+  document.getElementById('qs-ce').textContent=ce;
+  document.getElementById('qs-gr').textContent=ng;
+
+  // Median rows
+  const medRows=gfs.map(gf=>{
+    const m=medSurv(gf.fit.steps),ci=medCI(gf.fit.steps);
+    const mS=m!==null?m.toFixed(1):'Not reached';
+    const lS=ci.lo!==null?ci.lo.toFixed(1):'NA';
+    const uS=ci.hi!==null?ci.hi.toFixed(1):'NA';
+    return`  ${gf.g.padEnd(16)} ${mS.padStart(10)}  ${lS.padStart(8)}  ${uS.padStart(8)}`;
+  });
+
+  const pLine=lr?`\nLog-Rank Test: χ²(${lr.df}) = ${lr.chi2.toFixed(4)}, p-value = ${fmtP(lr.pval)}`:'';
+  const formulaStr=D.hasG?`Surv(time, event) ~ group`:`Surv(time, event) ~ 1`;
+
+  document.getElementById('scode').innerHTML=
+`<span class="sc-h">Kaplan-Meier Survival Analysis Summary</span>
+<span class="sc-s">======================================</span>
+
+<span class="sc-l">Call:</span> survfit(formula = ${formulaStr}, data = surv_data)
+
+<span class="sc-sec">Median Survival Time:</span>
+  <span class="sc-l">${'strata'.padEnd(16)} ${'median'.padStart(10)}  ${'0.95LCL'.padStart(8)}  ${'0.95UCL'.padStart(8)}</span>
+${medRows.join('\n')}
+
+<span class="sc-sec">Summary Statistics:</span>
+  Number of observations: <span class="sc-v">${n}</span>
+  Number of events:       <span class="sc-v">${ev}</span>
+  Censored:               <span class="sc-v">${ce}</span>
+  Censoring rate:         <span class="sc-v">${((ce/n)*100).toFixed(1)}%</span>${pLine}`;
+
+  // Group detail table
+  const gt=document.getElementById('grp-tbl');
+  gt.querySelector('thead').innerHTML='<tr><th>Group</th><th>N</th><th>Events</th><th>Censored</th><th>Median Survival</th><th>95% CI Lower</th><th>95% CI Upper</th></tr>';
+  gt.querySelector('tbody').innerHTML=gfs.map(gf=>{
+    const nG=gf.times.length,eG=gf.events.filter(e=>e===1).length;
+    const m=medSurv(gf.fit.steps),ci=medCI(gf.fit.steps);
+    return`<tr>
+      <td style="color:${gf.color};font-weight:600">${gf.g}</td>
+      <td>${nG}</td><td>${eG}</td><td>${nG-eG}</td>
+      <td>${m!==null?m.toFixed(1):'Not reached'}</td>
+      <td>${ci.lo!==null?ci.lo.toFixed(1):'NA'}</td>
+      <td>${ci.hi!==null?ci.hi.toFixed(1):'NA'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── SURVIVAL TABLE ────────────────────────────
+function genTable(){
+  if(!D.time.length){toast('Load data first.','err');return;}
+  if(!FIT){genPlot();return;}
+  const tpR=document.getElementById('tpts').value.trim();
+  let pts=tpR?tpR.split(',').map(v=>parseFloat(v.trim())).filter(v=>!isNaN(v)).sort((a,b)=>a-b)
+    :[...new Set(D.time.filter((_,i)=>D.event[i]===1))].sort((a,b)=>a-b);
+  const showCI=document.getElementById('tbl-ci').checked;
+  TBLDATA=[];
+  for(const gf of FIT){
+    const{steps}=gf.fit;
+    for(const t of pts){
+      let sv={surv:1,lower:1,upper:1};for(const s of steps){if(s.t<=t)sv=s;else break;}
+      const row={Group:gf.g,Time:t,'Survival Prob':sv.surv.toFixed(4),
+        Events:steps.filter(s=>s.t<=t).reduce((a,s)=>a+s.nEvent,0),
+        'At Risk':gf.times.filter(ti=>ti>=t).length};
+      if(showCI){row['Lower 95% CI']=sv.lower.toFixed(4);row['Upper 95% CI']=sv.upper.toFixed(4);}
+      TBLDATA.push(row);
+    }
+  }
+  const cols=Object.keys(TBLDATA[0]||{});
+  document.getElementById('stbl-head').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+  document.getElementById('stbl-body').innerHTML=TBLDATA.map(r=>'<tr>'+cols.map(c=>`<td>${r[c]}</td>`).join('')+'</tr>').join('');
+  document.getElementById('stbl-card').style.display='block';
+  if(document.getElementById('tbl-med').checked){
+    document.getElementById('med-sum').textContent=FIT.map(gf=>{
+      const m=medSurv(gf.fit.steps),ci=medCI(gf.fit.steps);
+      return`${gf.g}: Median = ${m!==null?m.toFixed(1):'Not reached'} [${ci.lo!==null?ci.lo.toFixed(1):'NA'} – ${ci.hi!==null?ci.hi.toFixed(1):'NA'}]`;
+    }).join('\n');
+  }
+  toast('Survival table generated');
+}
+
+// ── DOWNLOADS ─────────────────────────────────
+function dlPlot(fmt){
+  if(!CHART){toast('Generate a plot first.','err');return;}
+  const cv=document.getElementById('km-cv');
+  const a=document.createElement('a');
+  a.download=`KMPlotGenie_${Date.now()}.${fmt==='svg'?'png':fmt}`;
+  a.href=cv.toDataURL(fmt==='jpeg'?'image/jpeg':'image/png',.95);
+  a.click();toast(`Downloaded as ${fmt==='svg'?'PNG':fmt.toUpperCase()}`);
+}
+function dlLR(){
+  const t=document.getElementById('lr-out').innerText;
+  const b=new Blob([t],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`logrank_${Date.now()}.txt`;a.click();toast('Downloaded');
+}
+function dlCSV(){
+  if(!TBLDATA.length){toast('Generate table first.','err');return;}
+  const c=Object.keys(TBLDATA[0]);
+  const rows=[c.join(','),...TBLDATA.map(r=>c.map(k=>r[k]).join(','))];
+  const b=new Blob([rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`surv_table_${Date.now()}.csv`;a.click();toast('CSV downloaded');
+}
+function dlHTML(){
+  if(!TBLDATA.length){toast('Generate table first.','err');return;}
+  const c=Object.keys(TBLDATA[0]);
+  const th='<tr>'+c.map(k=>`<th style="background:#1a7a3c;color:#fff;padding:8px 12px">${k}</th>`).join('')+'</tr>';
+  const tb=TBLDATA.map(r=>'<tr>'+c.map(k=>`<td style="padding:6px 12px;border-bottom:1px solid #ddd">${r[k]}</td>`).join('')+'</tr>').join('');
+  const h=`<html><head><meta charset="UTF-8"></head><body><h2 style="font-family:sans-serif;color:#1a7a3c">Survival Table — KMPlotGenie</h2><table style="border-collapse:collapse;font-family:sans-serif;font-size:13px">${th}${tb}</table></body></html>`;
+  const b=new Blob([h],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`surv_table_${Date.now()}.html`;a.click();toast('HTML downloaded');
+}
+function cpTSV(){
+  if(!TBLDATA.length){toast('Generate table first.','err');return;}
+  const c=Object.keys(TBLDATA[0]);
+  const rows=[c.join('\t'),...TBLDATA.map(r=>c.map(k=>r[k]).join('\t'))];
+  navigator.clipboard.writeText(rows.join('\n')).then(()=>toast('Copied — paste into Excel/Sheets'));
+}
+
+// ── LIVE REDRAW ───────────────────────────────
+['ptitle','xlab','ylab','legtitle','fsize','ptheme',
+ 'opt-ci','opt-pval','opt-risk','opt-median','opt-censor','opt-cumev'
+].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('change',()=>{if(FIT)genPlot();});});
+document.addEventListener('change',e=>{if(e.target.id&&e.target.id.startsWith('cp-')&&FIT)genPlot();});
+
+toast('Welcome to KMPlotGenie — load your data to begin');
+</script>
+</body>
+</html>
