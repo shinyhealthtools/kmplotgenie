@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KMPlotGenie v1.0 – Interactive Survival Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2330;
+  --border: #2a3444;
+  --emerald: #2ea043;
+  --emerald-light: #3fb950;
+  --emerald-dim: #1a5c2a;
+  --amber: #e3b341;
+  --red: #f85149;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --muted2: #6e7681;
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  min-height: 100vh;
+  background-image: radial-gradient(ellipse at 20% 0%, rgba(46,160,67,0.06) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 100%, rgba(63,185,80,0.04) 0%, transparent 60%);
+}
+
+/* ─── Nav ─── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 20px rgba(0,0,0,0.4);
+}
+
+.logo {
+  font-family: var(--mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--emerald-light);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon { font-size: 1.4rem; }
+.logo sup { font-size: 0.5rem; color: var(--muted); vertical-align: super; }
+
+.nav-tabs-header {
+  display: flex;
+  gap: 4px;
+  margin-left: 40px;
+}
+
+.nav-tab {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s;
+}
+.nav-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.nav-tab.active { color: var(--emerald-light); background: rgba(46,160,67,0.12); }
+
+/* ─── Layout ─── */
+.app-body { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+.tab-panel { display: none; animation: fadeUp 0.3s ease; }
+.tab-panel.active { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Cards ─── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.card-head {
+  background: var(--emerald-dim);
+  border-bottom: 1px solid rgba(46,160,67,0.3);
+  padding: 12px 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--emerald-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-body { padding: 20px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-left-right { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+
+/* ─── Forms ─── */
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+input[type="text"], input[type="number"], select, textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 14px;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--emerald);
+  box-shadow: 0 0 0 3px rgba(46,160,67,0.12);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.checkbox-row input[type="checkbox"] {
+  width: 16px; height: 16px;
+  accent-color: var(--emerald);
+  cursor: pointer;
+  margin: 0;
+}
+.checkbox-row span { font-size: 13px; color: var(--text); text-transform: none; letter-spacing: 0; font-weight: 400; }
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.color-row label { margin: 0; flex: 1; }
+.color-row input[type="color"] {
+  width: 36px; height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* ─── Buttons ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--emerald);
+  color: white;
+}
+.btn-primary:hover { background: var(--emerald-light); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(46,160,67,0.3); }
+.btn-block { width: 100%; justify-content: center; }
+.btn-sm { padding: 7px 14px; font-size: 12px; }
+.btn-ghost { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover { border-color: var(--emerald); color: var(--emerald-light); }
+
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+
+/* ─── Data Input Area ─── */
+.data-input-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.col-input-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+.col-input-box .col-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--amber);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.col-input-box textarea {
+  margin: 0;
+  height: 150px;
+  background: var(--bg);
+  font-size: 11px;
+}
+
+.parsed-badge {
+  display: inline-block;
+  background: rgba(46,160,67,0.15);
+  border: 1px solid var(--emerald-dim);
+  color: var(--emerald-light);
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  margin-top: 4px;
+}
+.error-badge {
+  background: rgba(248,81,73,0.15);
+  border-color: rgba(248,81,73,0.3);
+  color: var(--red);
+}
+
+/* ─── Table ─── */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-top: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+thead th {
+  background: var(--emerald-dim);
+  color: var(--emerald-light);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(46,160,67,0.2);
+}
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:last-child { border: none; }
+tbody tr:hover { background: rgba(255,255,255,0.02); }
+tbody td { padding: 9px 14px; color: var(--text); }
+
+/* ─── Plot Area ─── */
+.plot-wrap {
+  position: relative;
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 20px;
+  min-height: 500px;
+}
+.plot-wrap canvas { border-radius: 6px; }
+
+.plot-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  gap: 14px;
+  color: var(--muted2);
+}
+.plot-empty i { font-size: 3rem; color: var(--border); }
+
+/* ─── Stats Panel ─── */
+.stat-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--muted);
+  white-space: pre-wrap;
+  min-height: 80px;
+}
+.stat-box .stat-val { color: var(--emerald-light); }
+.stat-box .stat-pval { color: var(--amber); }
+
+/* ─── Notifications ─── */
+#toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: var(--surface);
+  border: 1px solid var(--emerald-dim);
+  border-left: 4px solid var(--emerald);
+  color: var(--text);
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+  z-index: 9999;
+  max-width: 320px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.error { border-color: var(--red); border-left-color: var(--red); }
+
+/* ─── Footer ─── */
+.dev-footer {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(22,27,34,0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+}
+.dev-footer a { color: var(--emerald-light); text-decoration: none; display: flex; align-items: center; gap: 5px; }
+.dev-footer a:hover { text-decoration: underline; }
+
+/* ─── Section title ─── */
+.section-title {
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title i { color: var(--emerald); }
+
+/* ─── Hint text ─── */
+.hint { font-size: 11px; color: var(--muted2); margin-top: -10px; margin-bottom: 12px; }
+
+/* ─── Risk table ─── */
+.risk-table-wrap { margin-top: 14px; }
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .grid-left-right { grid-template-columns: 1fr; }
+  .data-input-grid { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .app-body { padding: 16px; }
+  .nav-tabs-header { display: none; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted2); }
+
+.separator { height: 1px; background: var(--border); margin: 18px 0; }
+
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.color-pickers-wrap { display: flex; flex-direction: column; gap: 8px; }
+
+.mb-0 { margin-bottom: 0 !important; }
+.mt-14 { margin-top: 14px; }
+.mt-8 { margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <i class="fas fa-wave-square logo-icon"></i>
+    KMPlotGenie<sup>v1.0</sup>
+  </div>
+  <nav class="nav-tabs-header">
+    <button class="nav-tab active" onclick="switchTab('data')" id="tab-data">
+      <i class="fas fa-database"></i> Data Input
+    </button>
+    <button class="nav-tab" onclick="switchTab('analysis')" id="tab-analysis">
+      <i class="fas fa-chart-line"></i> Survival Analysis
+    </button>
+    <button class="nav-tab" onclick="switchTab('table')" id="tab-table">
+      <i class="fas fa-table"></i> Survival Table
+    </button>
+  </nav>
+</header>
+
+<div class="app-body">
+
+<!-- ════════════════════════════════════════════ DATA TAB -->
+<div class="tab-panel active" id="panel-data">
+  <div class="section-title"><i class="fas fa-database"></i> Data Input</div>
+
+  <div class="card mb-0">
+    <div class="card-head"><i class="fas fa-paste"></i> Paste Your Data Below</div>
+    <div class="card-body">
+      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">
+        Copy each column from your spreadsheet and paste it into the corresponding box below. 
+        One value per line — the rows must match across all columns.
+      </p>
+
+      <div class="data-input-grid">
+        <div class="col-input-box">
+          <div class="col-label"><i class="fas fa-clock"></i> Time Variable</div>
+          <textarea id="input-time" placeholder="Paste time values here&#10;e.g.:&#10;12&#10;24&#10;36&#10;8&#10;48" spellcheck="false"></textarea>
+          <span id="badge-time" class="parsed-badge" style="display:none"></span>
+        </div>
+        <div class="col-input-box">
+          <div class="col-label"><i class="fas fa-circle-dot"></i> Event Variable</div>
+          <textarea id="input-event" placeholder="Paste event/status values&#10;e.g. (0=censored, 1=event):&#10;1&#10;0&#10;1&#10;1&#10;0" spellcheck="false"></textarea>
+          <span id="badge-event" class="parsed-badge" style="display:none"></span>
+        </div>
+        <div class="col-input-box">
+          <div class="col-label"><i class="fas fa-layer-group"></i> Group Variable <span style="color:var(--muted2);font-size:9px">(OPTIONAL)</span></div>
+          <textarea id="input-group" placeholder="Paste group/strata labels&#10;(leave empty for no grouping)&#10;e.g.:&#10;Treatment&#10;Control&#10;Treatment&#10;Control&#10;Treatment" spellcheck="false"></textarea>
+          <span id="badge-group" class="parsed-badge" style="display:none"></span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="loadData()">
+          <i class="fas fa-upload"></i> Load Data
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="loadDemoData()">
+          <i class="fas fa-flask"></i> Load Demo Data
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="clearData()">
+          <i class="fas fa-trash"></i> Clear
+        </button>
+        <div id="data-status" style="font-family:var(--mono);font-size:11px;color:var(--muted)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px; display:none" id="preview-section">
+    <div class="card">
+      <div class="card-head"><i class="fas fa-eye"></i> Data Preview</div>
+      <div class="card-body">
+        <div class="table-wrap">
+          <table id="preview-table">
+            <thead id="preview-thead"></thead>
+            <tbody id="preview-tbody"></tbody>
+          </table>
+        </div>
+        <p id="preview-info" style="font-size:12px;color:var(--muted);margin-top:10px;font-family:var(--mono)"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ ANALYSIS TAB -->
+<div class="tab-panel" id="panel-analysis">
+  <div class="section-title"><i class="fas fa-chart-line"></i> Kaplan–Meier Survival Analysis</div>
+
+  <div class="grid-left-right">
+    <!-- Left sidebar -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="card">
+        <div class="card-head"><i class="fas fa-sliders"></i> Plot Parameters</div>
+        <div class="card-body">
+          <label>Plot Title</label>
+          <input type="text" id="plot-title" value="Kaplan–Meier Survival Curve">
+
+          <label>X-axis Label</label>
+          <input type="text" id="xlab" value="Time">
+
+          <label>Y-axis Label</label>
+          <input type="text" id="ylab" value="Survival Probability">
+
+          <label>Legend Title</label>
+          <input type="text" id="legend-title" value="Group">
+
+          <label>Font Size</label>
+          <input type="number" id="font-size" value="13" min="8" max="22">
+
+          <label>Plot Theme</label>
+          <select id="plot-theme">
+            <option value="minimal">Minimal</option>
+            <option value="dark">Dark Scientific</option>
+            <option value="classic">Classic</option>
+            <option value="grid">Grid</option>
+          </select>
+
+          <div class="separator"></div>
+
+          <label style="margin-bottom:10px">Display Options</label>
+          <label class="checkbox-row"><input type="checkbox" id="opt-ci" checked><span>Show Confidence Interval</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="opt-pval" checked><span>Show P-value</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="opt-risk" checked><span>Show Risk Table</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="opt-median" checked><span>Show Median Survival Line</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="opt-censor" checked><span>Show Censor Marks</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="opt-cumev"><span>Show Cumulative Events</span></label>
+
+          <div class="separator"></div>
+          <div id="color-pickers-section" style="display:none">
+            <label style="margin-bottom:10px">Group Colors</label>
+            <div id="color-pickers-wrap" class="color-pickers-wrap"></div>
+            <div class="separator"></div>
+          </div>
+
+          <button class="btn btn-primary btn-block" onclick="generatePlot()">
+            <i class="fas fa-play"></i> Generate Survival Plot
+          </button>
+        </div>
+      </div>
+
+      <div class="card" id="logrank-card" style="display:none">
+        <div class="card-head"><i class="fas fa-calculator"></i> Log-Rank Test</div>
+        <div class="card-body">
+          <div class="stat-box" id="logrank-output">—</div>
+          <div class="btn-group">
+            <button class="btn btn-ghost btn-sm" onclick="downloadLogrankTxt()">
+              <i class="fas fa-download"></i> Download Results (.txt)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right plot area -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="card">
+        <div class="card-head">
+          <i class="fas fa-chart-area"></i> Kaplan–Meier Plot
+        </div>
+        <div class="card-body" style="padding:16px;">
+          <div class="plot-wrap" id="plot-wrap">
+            <div class="plot-empty" id="plot-empty">
+              <i class="fas fa-chart-line"></i>
+              <p style="font-family:var(--mono);font-size:13px;text-align:center">
+                Load data and click<br>"Generate Survival Plot"
+              </p>
+            </div>
+            <canvas id="km-canvas" style="display:none"></canvas>
+          </div>
+
+          <!-- Risk table -->
+          <div id="risk-table-section" style="display:none; margin-top:12px;">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">
+              <i class="fas fa-users"></i> Number at Risk
+            </div>
+            <div class="table-wrap">
+              <table id="risk-table"><thead></thead><tbody></tbody></table>
+            </div>
+          </div>
+
+          <div class="btn-group" style="margin-top:16px;">
+            <button class="btn btn-ghost btn-sm" onclick="downloadPlot('png')">
+              <i class="fas fa-image"></i> PNG
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="downloadPlot('svg')">
+              <i class="fas fa-file-code"></i> SVG
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="downloadPlot('jpeg')">
+              <i class="fas fa-file-image"></i> JPEG
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ TABLE TAB -->
+<div class="tab-panel" id="panel-table">
+  <div class="section-title"><i class="fas fa-table"></i> Survival Table Generator</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head"><i class="fas fa-gear"></i> Table Parameters</div>
+      <div class="card-body">
+        <label>Time Points (comma separated)</label>
+        <input type="text" id="time-points" placeholder="e.g. 30, 60, 90, 180, 365">
+        <p class="hint">Leave empty to use all event times</p>
+
+        <label class="checkbox-row"><input type="checkbox" id="tbl-ci" checked><span>Show Confidence Intervals</span></label>
+        <label class="checkbox-row"><input type="checkbox" id="tbl-median" checked><span>Show Median Survival</span></label>
+
+        <div class="separator"></div>
+
+        <button class="btn btn-primary btn-block" onclick="generateTable()">
+          <i class="fas fa-table"></i> Generate Survival Table
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><i class="fas fa-info-circle"></i> Median Survival Summary</div>
+      <div class="card-body">
+        <div class="stat-box" id="median-summary">—</div>
+        <p class="hint mt-8">Median survival time with 95% CI for each group</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-14" style="margin-top:16px;" id="surv-table-card" style="display:none">
+    <div class="card-head"><i class="fas fa-table"></i> Survival Probability Table</div>
+    <div class="card-body">
+      <div class="table-wrap">
+        <table id="surv-table">
+          <thead id="surv-table-head"></thead>
+          <tbody id="surv-table-body"></tbody>
+        </table>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-ghost btn-sm" onclick="downloadTableCSV()">
+          <i class="fas fa-file-csv"></i> Download CSV
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="downloadTableHTML()">
+          <i class="fas fa-file-code"></i> Download HTML (Word-ready)
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="copyTableTSV()">
+          <i class="fas fa-copy"></i> Copy (paste to Excel)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app-body -->
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<!-- Footer -->
+<div class="dev-footer">
+  Built with ❤️ in Ghana by <strong>Mudasir Mohammed Ibrahim</strong>
+  <a href="mailto:mudassiribrahim30@gmail.com"><i class="fas fa-envelope"></i></a>
+  <a href="https://www.researchgate.net/profile/Mudasir-Ibrahim" target="_blank"><i class="fas fa-graduation-cap"></i> ResearchGate</a>
+  <a href="https://github.com/mudassiribrahim30" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let appData = { time: [], event: [], group: [], hasGroup: false, groups: [] };
+let kmFit = null;
+let currentChart = null;
+let survTableData = [];
+
+const GROUP_COLORS = [
+  '#2ea043','#e3b341','#58a6ff','#f85149','#a371f7','#79c0ff','#d29922','#56d364'
+];
+
+// ═══════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+let toastTimer;
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type === 'error' ? ' error' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════════
+// PARSE COLUMN TEXT
+// ═══════════════════════════════════════════════
+function parseCol(text) {
+  return text.trim().split(/[\n\r,\t]+/).map(v => v.trim()).filter(v => v !== '');
+}
+
+// ═══════════════════════════════════════════════
+// LOAD DATA
+// ═══════════════════════════════════════════════
+function loadData() {
+  const timeRaw  = document.getElementById('input-time').value;
+  const eventRaw = document.getElementById('input-event').value;
+  const groupRaw = document.getElementById('input-group').value;
+
+  const timeArr  = parseCol(timeRaw).map(Number);
+  const eventArr = parseCol(eventRaw).map(Number);
+  const groupArr = groupRaw.trim() ? parseCol(groupRaw) : [];
+
+  if (timeArr.length === 0 || eventArr.length === 0) {
+    toast('Please paste Time and Event data.', 'error'); return;
+  }
+  if (timeArr.some(isNaN) || eventArr.some(isNaN)) {
+    toast('Time and Event columns must be numeric.', 'error'); return;
+  }
+  if (timeArr.length !== eventArr.length) {
+    toast(`Row count mismatch: Time (${timeArr.length}) vs Event (${eventArr.length}).`, 'error'); return;
+  }
+  if (groupArr.length > 0 && groupArr.length !== timeArr.length) {
+    toast(`Row count mismatch: Group (${groupArr.length}) vs Time (${timeArr.length}).`, 'error'); return;
+  }
+
+  const valid = timeArr.map((t, i) => ({
+    t, e: eventArr[i], g: groupArr[i] || 'All'
+  })).filter(r => !isNaN(r.t) && !isNaN(r.e) && r.t >= 0);
+
+  appData.time  = valid.map(r => r.t);
+  appData.event = valid.map(r => r.e);
+  appData.group = groupArr.length > 0 ? valid.map(r => r.g) : valid.map(() => 'All');
+  appData.hasGroup = groupArr.length > 0;
+  appData.groups = [...new Set(appData.group)].sort();
+
+  showBadge('time',  timeArr.length + ' values');
+  showBadge('event', eventArr.length + ' values');
+  if (groupArr.length > 0) showBadge('group', appData.groups.length + ' groups: ' + appData.groups.join(', '));
+
+  showPreview();
+  updateColorPickers();
+  document.getElementById('data-status').textContent =
+    `✓ ${valid.length} rows loaded — ${appData.groups.length} group(s)`;
+  toast(`Data loaded: ${valid.length} observations`);
+}
+
+function showBadge(id, text) {
+  const el = document.getElementById('badge-' + id);
+  el.textContent = text; el.style.display = 'inline-block';
+}
+
+function clearData() {
+  ['input-time','input-event','input-group'].forEach(id => document.getElementById(id).value = '');
+  ['badge-time','badge-event','badge-group'].forEach(id => {
+    const el = document.getElementById(id); el.style.display = 'none';
+  });
+  document.getElementById('preview-section').style.display = 'none';
+  document.getElementById('data-status').textContent = '';
+  appData = { time: [], event: [], group: [], hasGroup: false, groups: [] };
+  toast('Data cleared');
+}
+
+function showPreview() {
+  const sec = document.getElementById('preview-section');
+  sec.style.display = 'block';
+  const thead = document.getElementById('preview-thead');
+  const tbody = document.getElementById('preview-tbody');
+  const cols = appData.hasGroup ? ['#','Time','Event','Group'] : ['#','Time','Event'];
+  thead.innerHTML = '<tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+  const rows = Math.min(appData.time.length, 20);
+  let html = '';
+  for (let i = 0; i < rows; i++) {
+    html += '<tr><td>' + (i+1) + '</td><td>' + appData.time[i] + '</td><td>' + appData.event[i] + '</td>';
+    if (appData.hasGroup) html += '<td>' + appData.group[i] + '</td>';
+    html += '</tr>';
+  }
+  tbody.innerHTML = html;
+  document.getElementById('preview-info').textContent =
+    `Showing first ${rows} of ${appData.time.length} rows`;
+}
+
+function loadDemoData() {
+  // Classic lung cancer demo data (subset)
+  const time  = [306,455,1010,210,883,1022,310,361,218,166,170,654,728,71,567,144,613,707,61,88,301,81,624,371,394,520,574,118,390,12,473,26,533,107,53,122,814,965,93,731,460,153,433,145,583,95,303,519,643,765];
+  const event = [1,1,0,1,1,0,1,1,1,1,1,1,0,1,0,1,0,0,1,1,1,1,0,1,1,0,0,1,1,1,0,1,0,1,1,1,0,0,1,1,1,1,0,1,0,1,1,0,0,0];
+  const group = ['Male','Male','Female','Female','Male','Male','Female','Male','Female','Male','Female','Male','Female','Male','Male','Female','Female','Male','Male','Female','Male','Female','Male','Male','Female','Female','Male','Female','Male','Male','Female','Female','Male','Male','Female','Male','Female','Female','Male','Female','Male','Male','Female','Female','Male','Female','Male','Female','Male','Female'];
+
+  document.getElementById('input-time').value  = time.join('\n');
+  document.getElementById('input-event').value = event.join('\n');
+  document.getElementById('input-group').value = group.join('\n');
+  loadData();
+  toast('Demo lung cancer dataset loaded');
+}
+
+function updateColorPickers() {
+  const sec = document.getElementById('color-pickers-section');
+  const wrap = document.getElementById('color-pickers-wrap');
+  if (appData.groups.length <= 1) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  wrap.innerHTML = appData.groups.map((g, i) =>
+    `<div class="color-row">
+      <label style="color:var(--text);text-transform:none;font-size:12px;">${g}</label>
+      <input type="color" id="color-g-${i}" value="${GROUP_COLORS[i % GROUP_COLORS.length]}">
+    </div>`
+  ).join('');
+}
+
+function getGroupColors() {
+  return appData.groups.map((g, i) => {
+    const el = document.getElementById('color-g-' + i);
+    return el ? el.value : GROUP_COLORS[i % GROUP_COLORS.length];
+  });
+}
+
+// ═══════════════════════════════════════════════
+// KM CALCULATION
+// ═══════════════════════════════════════════════
+function kmEstimate(times, events) {
+  // Kaplan-Meier estimator
+  const n = times.length;
+  const sorted = times.map((t, i) => ({ t, e: events[i] })).sort((a,b) => a.t - b.t);
+
+  const steps = [{ t: 0, surv: 1, lower: 1, upper: 1, nRisk: n, nEvent: 0, nCensor: 0 }];
+  let S = 1, V = 0; // Greenwood's formula variance
+  let atRisk = n;
+
+  const eventTimes = [...new Set(sorted.filter(r => r.e === 1).map(r => r.t))].sort((a,b) => a-b);
+
+  let idx = 0;
+  for (const t of eventTimes) {
+    // count censored before t
+    while (idx < sorted.length && sorted[idx].t < t) {
+      if (sorted[idx].e === 0) atRisk--;
+      idx++;
+    }
+    // count events and censors at t
+    let d = 0, c = 0, start = idx;
+    while (idx < sorted.length && sorted[idx].t === t) {
+      if (sorted[idx].e === 1) d++;
+      else c++;
+      idx++;
+    }
+    if (atRisk > 0 && d > 0) {
+      S *= (atRisk - d) / atRisk;
+      V += d / (atRisk * (atRisk - d));
+      const se = Math.sqrt(S * S * V);
+      const z = 1.96;
+      steps.push({
+        t, surv: S,
+        lower: Math.max(0, S - z * se),
+        upper: Math.min(1, S + z * se),
+        nRisk: atRisk, nEvent: d, nCensor: c
+      });
+      atRisk -= (d + c);
+    }
+  }
+
+  // Censor marks
+  const censors = sorted.filter(r => r.e === 0).map(r => r.t);
+
+  return { steps, censors, n };
+}
+
+function survAtTime(steps, t) {
+  let s = 1;
+  for (const step of steps) {
+    if (step.t <= t) s = step.surv;
+    else break;
+  }
+  return s;
+}
+
+function medianSurvival(steps) {
+  for (let i = 0; i < steps.length; i++) {
+    if (steps[i].surv <= 0.5) return steps[i].t;
+  }
+  return null; // not reached
+}
+
+function logRankTest(groups) {
+  // Log-rank test: chi-squared statistic
+  const allTimes = [...new Set(groups.flatMap(g => g.times.filter((t,i) => g.events[i] === 1)))].sort((a,b) => a-b);
+  
+  let O = groups.map(() => 0);
+  let E = groups.map(() => 0);
+  
+  for (const t of allTimes) {
+    const nI = groups.map(g => g.times.filter((ti, i) => ti >= t).length);
+    const dI = groups.map(g => g.times.filter((ti, i) => ti === t && g.events[i] === 1).length);
+    const N  = nI.reduce((a,b) => a+b, 0);
+    const D  = dI.reduce((a,b) => a+b, 0);
+    if (N <= 1) continue;
+    for (let k = 0; k < groups.length; k++) {
+      O[k] += dI[k];
+      E[k] += nI[k] * D / N;
+    }
+  }
+
+  let chi2 = 0;
+  for (let k = 0; k < groups.length; k++) {
+    const diff = O[k] - E[k];
+    if (E[k] > 0) chi2 += diff * diff / E[k];
+  }
+  const df = groups.length - 1;
+  const pval = 1 - chi2CDF(chi2, df);
+
+  return { chi2, df, O, E, pval };
+}
+
+// Chi-squared CDF approximation (Abramowitz & Stegun)
+function chi2CDF(x, k) {
+  if (x < 0) return 0;
+  return gammaCDF(x / 2, k / 2);
+}
+function gammaCDF(x, a) {
+  // Regularized incomplete gamma function P(a,x)
+  if (x <= 0) return 0;
+  if (x < a + 1) return gammaSeriesP(a, x);
+  return 1 - gammaCF(a, x);
+}
+function gammaSeriesP(a, x) {
+  let term = 1 / a, sum = term;
+  for (let i = 1; i < 200; i++) {
+    term *= x / (a + i); sum += term;
+    if (Math.abs(term) < 1e-10 * Math.abs(sum)) break;
+  }
+  return sum * Math.exp(-x + a * Math.log(x) - logGamma(a));
+}
+function gammaCF(a, x) {
+  let f = x + 1e-30, C = f, D = 0, h = f;
+  for (let i = 1; i <= 200; i++) {
+    let an = -i * (i - a); D = x + an * D + 1e-30; C = x + an / C + 1e-30;
+    D = 1 / D; h *= D * C;
+    an = i + 0.5 - a; D = 1 / (x + an * D + 1e-30); C = x + an / C + 1e-30;
+    D = 1; h *= D * C;
+    if (Math.abs(D * C - 1) < 1e-10) break;
+  }
+  return Math.exp(-x + a * Math.log(x) - logGamma(a)) / h;
+}
+function logGamma(z) {
+  const c = [76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let x = z, y = z, tmp = x + 5.5;
+  tmp -= (x + 0.5) * Math.log(tmp);
+  let s = 1.000000000190015;
+  for (let j = 0; j < 6; j++) { y++; s += c[j] / y; }
+  return -tmp + Math.log(2.5066282746310005 * s / x);
+}
+
+function formatP(p) {
+  if (p < 0.001) return '< 0.001';
+  return p.toFixed(3);
+}
+
+// ═══════════════════════════════════════════════
+// GENERATE PLOT
+// ═══════════════════════════════════════════════
+function generatePlot() {
+  if (appData.time.length === 0) { toast('Please load data first.', 'error'); return; }
+
+  const colors = getGroupColors();
+
+  // Compute KM per group
+  const groupFits = appData.groups.map((g, gi) => {
+    const idx = appData.group.map((gr, i) => gr === g ? i : -1).filter(i => i >= 0);
+    const times  = idx.map(i => appData.time[i]);
+    const events = idx.map(i => appData.event[i]);
+    const fit = kmEstimate(times, events);
+    return { g, fit, times, events, color: colors[gi] };
+  });
+
+  kmFit = groupFits;
+
+  // Log-rank test
+  let logrankResult = null;
+  if (appData.hasGroup && appData.groups.length >= 2) {
+    logrankResult = logRankTest(groupFits.map(gf => ({ times: gf.times, events: gf.events })));
+    renderLogrank(logrankResult);
+    document.getElementById('logrank-card').style.display = 'block';
+  } else {
+    document.getElementById('logrank-card').style.display = 'none';
+  }
+
+  renderKMChart(groupFits, logrankResult);
+  renderRiskTable(groupFits);
+
+  switchTab('analysis');
+  toast('Survival plot generated');
+}
+
+function renderKMChart(groupFits, logrankResult) {
+  const canvas = document.getElementById('km-canvas');
+  const empty  = document.getElementById('plot-empty');
+  canvas.style.display = 'block';
+  empty.style.display  = 'none';
+
+  if (currentChart) { currentChart.destroy(); currentChart = null; }
+
+  const showCI     = document.getElementById('opt-ci').checked;
+  const showMedian = document.getElementById('opt-median').checked;
+  const showCensor = document.getElementById('opt-censor').checked;
+  const showCumEv  = document.getElementById('opt-cumev').checked;
+  const title      = document.getElementById('plot-title').value;
+  const xlab       = document.getElementById('xlab').value;
+  const ylab       = showCumEv ? 'Cumulative Events' : document.getElementById('ylab').value;
+  const theme      = document.getElementById('plot-theme').value;
+  const fontSize   = parseInt(document.getElementById('font-size').value) || 13;
+  const pval       = document.getElementById('opt-pval').checked;
+
+  const isDark = (theme === 'dark' || theme === 'minimal');
+  const bgColor  = isDark ? '#161b22' : '#ffffff';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)';
+  const textColor = isDark ? '#c9d1d9' : '#24292e';
+  const axisColor = isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+
+  // Build datasets
+  const datasets = [];
+
+  for (const gf of groupFits) {
+    const { steps, censors } = gf.fit;
+    const color = gf.color;
+
+    // Main KM line – step function
+    const lineData = [];
+    for (let i = 0; i < steps.length; i++) {
+      const s = steps[i];
+      const val = showCumEv ? (1 - s.surv) : s.surv;
+      if (i > 0) lineData.push({ x: s.t, y: showCumEv ? (1 - steps[i-1].surv) : steps[i-1].surv });
+      lineData.push({ x: s.t, y: val });
+    }
+    // extend to max time
+    if (steps.length > 0) {
+      const last = steps[steps.length - 1];
+      const maxT = Math.max(...appData.time);
+      lineData.push({ x: maxT, y: showCumEv ? (1 - last.surv) : last.surv });
+    }
+
+    datasets.push({
+      label: gf.g,
+      data: lineData,
+      borderColor: color,
+      backgroundColor: 'transparent',
+      borderWidth: 2.5,
+      pointRadius: 0,
+      tension: 0,
+      stepped: false,
+      order: 1,
+      type: 'line'
+    });
+
+    // Confidence interval shading
+    if (showCI && steps.length > 1) {
+      const ciUpper = [], ciLower = [];
+      for (let i = 0; i < steps.length; i++) {
+        const s = steps[i];
+        if (i > 0) {
+          ciUpper.push({ x: s.t, y: showCumEv ? (1 - steps[i-1].lower) : steps[i-1].upper });
+          ciLower.push({ x: s.t, y: showCumEv ? (1 - steps[i-1].upper) : steps[i-1].lower });
+        }
+        ciUpper.push({ x: s.t, y: showCumEv ? (1 - s.lower) : s.upper });
+        ciLower.push({ x: s.t, y: showCumEv ? (1 - s.upper) : s.lower });
+      }
+      const maxT = Math.max(...appData.time);
+      const lastS = steps[steps.length - 1];
+      ciUpper.push({ x: maxT, y: showCumEv ? (1 - lastS.lower) : lastS.upper });
+      ciLower.push({ x: maxT, y: showCumEv ? (1 - lastS.upper) : lastS.lower });
+
+      datasets.push({
+        label: '__ci_' + gf.g,
+        data: ciUpper,
+        borderColor: 'transparent',
+        backgroundColor: hexToRgba(color, 0.12),
+        pointRadius: 0, fill: '+1', tension: 0, order: 2, type: 'line'
+      });
+      datasets.push({
+        label: '__ci_' + gf.g + '_lower',
+        data: ciLower,
+        borderColor: 'transparent',
+        backgroundColor: hexToRgba(color, 0.12),
+        pointRadius: 0, fill: false, tension: 0, order: 2, type: 'line'
+      });
+    }
+
+    // Censor marks
+    if (showCensor && censors.length > 0) {
+      const censorPts = censors.map(ct => {
+        const sv = survAtTime(steps, ct);
+        return { x: ct, y: showCumEv ? (1 - sv) : sv };
+      });
+      datasets.push({
+        label: '__censor_' + gf.g,
+        data: censorPts,
+        type: 'scatter',
+        pointStyle: 'crossRot',
+        pointRadius: 6,
+        pointBorderWidth: 2,
+        borderColor: color,
+        backgroundColor: color,
+        showLine: false,
+        order: 0
+      });
+    }
+
+    // Median line
+    if (showMedian) {
+      const med = medianSurvival(steps);
+      if (med !== null) {
+        datasets.push({
+          label: '__median_' + gf.g,
+          data: [{ x: 0, y: 0.5 }, { x: med, y: 0.5 }, { x: med, y: 0 }],
+          borderColor: color,
+          borderDash: [6, 4],
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          tension: 0,
+          order: 1,
+          type: 'line'
+        });
+      }
+    }
+  }
+
+  // p-value annotation
+  let pvalText = '';
+  if (pval && logrankResult) {
+    pvalText = `p = ${formatP(logrankResult.pval)}`;
+  }
+
+  const legendTitle = document.getElementById('legend-title').value;
+
+  currentChart = new Chart(canvas, {
+    type: 'line',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 600, easing: 'easeOutCubic' },
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: xlab, color: textColor, font: { size: fontSize, family: "'DM Sans', sans-serif" } },
+          ticks: { color: textColor, font: { size: fontSize - 2 } },
+          grid: { color: gridColor },
+          border: { color: axisColor }
+        },
+        y: {
+          min: 0, max: 1,
+          title: { display: true, text: ylab, color: textColor, font: { size: fontSize, family: "'DM Sans', sans-serif" } },
+          ticks: {
+            color: textColor,
+            font: { size: fontSize - 2 },
+            callback: v => v.toFixed(1)
+          },
+          grid: { color: gridColor },
+          border: { color: axisColor }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            color: textColor,
+            font: { size: fontSize - 1, family: "'DM Sans', sans-serif" },
+            filter: item => !item.text.startsWith('__'),
+            boxWidth: 30, boxHeight: 2
+          },
+          title: { display: legendTitle, text: legendTitle, color: textColor, font: { size: fontSize - 1 } }
+        },
+        title: {
+          display: !!title,
+          text: title,
+          color: textColor,
+          font: { size: fontSize + 2, weight: 'bold', family: "'Space Mono', monospace" },
+          padding: { bottom: 14 }
+        },
+        tooltip: {
+          filter: item => !item.dataset.label.startsWith('__'),
+          callbacks: {
+            title: items => `Time: ${items[0].parsed.x}`,
+            label: item => {
+              if (item.dataset.label.startsWith('__')) return null;
+              return ` ${item.dataset.label}: ${item.parsed.y.toFixed(3)}`;
+            }
+          }
+        },
+        // Custom pval plugin
+        pvalPlugin: { pvalText, textColor, fontSize }
+      },
+      layout: { padding: { right: 20, top: 10 } },
+      backgroundColor: bgColor
+    },
+    plugins: [{
+      id: 'bgFill',
+      beforeDraw(chart) {
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, chart.width, chart.height);
+        ctx.restore();
+      }
+    }, {
+      id: 'pvalAnnotation',
+      afterDatasetsDraw(chart) {
+        const { pvalText, textColor, fontSize } = chart.options.plugins.pvalPlugin;
+        if (!pvalText) return;
+        const ctx = chart.ctx;
+        const { top, right } = chart.chartArea;
+        ctx.save();
+        ctx.font = `${fontSize - 1}px "Space Mono", monospace`;
+        ctx.fillStyle = '#e3b341';
+        ctx.textAlign = 'right';
+        ctx.fillText(pvalText, right - 8, top + 20);
+        ctx.restore();
+      }
+    }]
+  });
+
+  // resize canvas for better render
+  const wrap = document.getElementById('plot-wrap');
+  canvas.style.height = '480px';
+  canvas.style.width = '100%';
+}
+
+function hexToRgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ═══════════════════════════════════════════════
+// RISK TABLE
+// ═══════════════════════════════════════════════
+function renderRiskTable(groupFits) {
+  const show = document.getElementById('opt-risk').checked;
+  const sec  = document.getElementById('risk-table-section');
+  if (!show) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+
+  const maxT = Math.max(...appData.time);
+  const ticks = 6;
+  const step  = maxT / ticks;
+  const timePoints = Array.from({length: ticks + 1}, (_, i) => Math.round(i * step));
+
+  const thead = document.querySelector('#risk-table thead');
+  const tbody = document.querySelector('#risk-table tbody');
+
+  thead.innerHTML = '<tr><th>Group</th>' + timePoints.map(t => `<th>${t}</th>`).join('') + '</tr>';
+  tbody.innerHTML = groupFits.map(gf => {
+    const cells = timePoints.map(t => {
+      const n = gf.times.filter((ti, i) => ti >= t).length;
+      return `<td>${n}</td>`;
+    }).join('');
+    return `<tr><td style="color:${gf.color};font-weight:600">${gf.g}</td>${cells}</tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// LOG-RANK
+// ═══════════════════════════════════════════════
+function renderLogrank(r) {
+  const box = document.getElementById('logrank-output');
+  const lines = [
+    `Log-Rank Test Results`,
+    `──────────────────────────────`,
+    `Chi-squared: ${r.chi2.toFixed(4)}`,
+    `Degrees of freedom: ${r.df}`,
+    `p-value: ${formatP(r.pval)}`,
+    ``,
+    `Group Summary:`,
+    ...appData.groups.map((g, i) =>
+      `  ${g.padEnd(16)} O=${r.O[i]}  E=${r.E[i].toFixed(2)}`
+    )
+  ];
+  box.innerHTML = lines.map((l, i) => {
+    if (i === 0) return `<span style="color:var(--emerald-light);font-weight:700">${l}</span>`;
+    if (i === 2) return l.replace(/(Chi-squared:)/, '<span style="color:var(--amber)">$1</span>');
+    if (i === 4) {
+      const pv = r.pval;
+      const col = pv < 0.05 ? 'var(--emerald-light)' : 'var(--muted)';
+      return l.replace(/(p-value:)(.+)/, `$1<span style="color:${col};font-weight:700">$2</span>`);
+    }
+    return l;
+  }).join('\n');
+}
+
+// ═══════════════════════════════════════════════
+// SURVIVAL TABLE
+// ═══════════════════════════════════════════════
+function generateTable() {
+  if (appData.time.length === 0) { toast('Please load data first.', 'error'); return; }
+  if (!kmFit) generatePlot();
+
+  const tpRaw = document.getElementById('time-points').value.trim();
+  let timePoints;
+  if (tpRaw) {
+    timePoints = tpRaw.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v)).sort((a,b) => a-b);
+  } else {
+    // all event times
+    timePoints = [...new Set(appData.time.filter((t,i) => appData.event[i] === 1))].sort((a,b) => a-b);
+  }
+
+  const showCI     = document.getElementById('tbl-ci').checked;
+  const showMedian = document.getElementById('tbl-median').checked;
+
+  survTableData = [];
+  const rows = [];
+
+  for (const gf of kmFit) {
+    const { steps } = gf.fit;
+    for (const t of timePoints) {
+      // find step at or before t
+      let survStep = { surv: 1, lower: 1, upper: 1, nRisk: gf.fit.n, nEvent: 0 };
+      for (const s of steps) {
+        if (s.t <= t) survStep = s;
+        else break;
+      }
+      const row = {
+        Group: gf.g,
+        Time: t,
+        'Survival Prob': survStep.surv.toFixed(4),
+        'Events': steps.filter(s => s.t <= t).reduce((a,s) => a + s.nEvent, 0),
+        'At Risk': gf.times.filter(ti => ti >= t).length
+      };
+      if (showCI) {
+        row['Lower 95% CI'] = survStep.lower.toFixed(4);
+        row['Upper 95% CI'] = survStep.upper.toFixed(4);
+      }
+      rows.push(row);
+      survTableData.push(row);
+    }
+  }
+
+  // Render
+  const cols = Object.keys(rows[0] || {});
+  const thead = document.getElementById('surv-table-head');
+  const tbody = document.getElementById('surv-table-body');
+  thead.innerHTML = '<tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+  tbody.innerHTML = rows.map(r =>
+    '<tr>' + cols.map(c => `<td>${r[c]}</td>`).join('') + '</tr>'
+  ).join('');
+
+  // Median summary
+  if (showMedian) {
+    const summary = kmFit.map(gf => {
+      const med = medianSurvival(gf.fit.steps);
+      return `${gf.g}: Median = ${med !== null ? med : 'Not reached'}`;
+    }).join('\n');
+    document.getElementById('median-summary').textContent = summary;
+  }
+
+  document.getElementById('surv-table-card').style.display = 'block';
+  toast('Survival table generated');
+}
+
+// ═══════════════════════════════════════════════
+// DOWNLOADS
+// ═══════════════════════════════════════════════
+function downloadPlot(fmt) {
+  if (!currentChart) { toast('Generate a plot first.', 'error'); return; }
+  const canvas = document.getElementById('km-canvas');
+
+  if (fmt === 'svg') {
+    // Fallback: download canvas as PNG with SVG name
+    const link = document.createElement('a');
+    link.download = `KMPlotGenie_${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast('SVG not supported in browser canvas — downloaded as PNG');
+    return;
+  }
+
+  const link = document.createElement('a');
+  link.download = `KMPlotGenie_${Date.now()}.${fmt}`;
+  link.href = canvas.toDataURL(fmt === 'png' ? 'image/png' : 'image/jpeg', 0.95);
+  link.click();
+  toast(`Plot downloaded as ${fmt.toUpperCase()}`);
+}
+
+function downloadLogrankTxt() {
+  if (!kmFit) { toast('Generate a plot first.', 'error'); return; }
+  const box = document.getElementById('logrank-output');
+  const text = box.innerText;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `logrank_results_${Date.now()}.txt`;
+  link.click();
+  toast('Log-rank results downloaded');
+}
+
+function downloadTableCSV() {
+  if (!survTableData.length) { toast('Generate table first.', 'error'); return; }
+  const cols = Object.keys(survTableData[0]);
+  const rows = [cols.join(','), ...survTableData.map(r => cols.map(c => r[c]).join(','))];
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `survival_table_${Date.now()}.csv`;
+  link.click();
+  toast('CSV downloaded');
+}
+
+function downloadTableHTML() {
+  if (!survTableData.length) { toast('Generate table first.', 'error'); return; }
+  const cols = Object.keys(survTableData[0]);
+  const thead = '<tr>' + cols.map(c => `<th style="background:#2c7a4d;color:white;padding:8px 12px;font-family:sans-serif">${c}</th>`).join('') + '</tr>';
+  const tbody = survTableData.map(r =>
+    '<tr>' + cols.map(c => `<td style="padding:6px 12px;font-family:sans-serif;border-bottom:1px solid #ddd">${r[c]}</td>`).join('') + '</tr>'
+  ).join('');
+  const html = `<html><body><h2 style="font-family:sans-serif">Survival Table — KMPlotGenie</h2><table style="border-collapse:collapse">${thead}${tbody}</table></body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `survival_table_${Date.now()}.html`;
+  link.click();
+  toast('HTML table downloaded (open in Word)');
+}
+
+function copyTableTSV() {
+  if (!survTableData.length) { toast('Generate table first.', 'error'); return; }
+  const cols = Object.keys(survTableData[0]);
+  const rows = [cols.join('\t'), ...survTableData.map(r => cols.map(c => r[c]).join('\t'))];
+  navigator.clipboard.writeText(rows.join('\n')).then(() => toast('Table copied — paste into Excel or Sheets'));
+}
+
+// ═══════════════════════════════════════════════
+// LIVE CUSTOMIZATION (re-render on input changes)
+// ═══════════════════════════════════════════════
+['plot-title','xlab','ylab','legend-title','font-size','plot-theme',
+ 'opt-ci','opt-pval','opt-risk','opt-median','opt-censor','opt-cumev'
+].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', () => { if (kmFit) generatePlot(); });
+});
+
+// Color picker changes
+document.addEventListener('change', e => {
+  if (e.target.id && e.target.id.startsWith('color-g-') && kmFit) generatePlot();
+});
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  toast('Welcome to KMPlotGenie — load your data to begin');
+});
+</script>
+</body>
+</html>
